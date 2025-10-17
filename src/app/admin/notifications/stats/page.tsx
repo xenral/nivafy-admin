@@ -6,19 +6,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { notificationService } from '@/lib/services';
+import { NotificationStats } from '@/types/services/notification.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Bell, Send, CheckCircle, XCircle, Eye, Users } from 'lucide-react';
+import { Bell, Send, CheckCircle, XCircle, Eye, Users, TrendingUp, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface NotificationStats {
-  totalNotifications: number;
-  unreadCount: number;
-  readCount: number;
-  deliveryRate: number;
-  totalTemplates: number;
-  totalPushTokens: number;
-}
 
 export default function NotificationStatsPage() {
   const [stats, setStats] = useState<NotificationStats | null>(null);
@@ -31,18 +24,8 @@ export default function NotificationStatsPage() {
   const loadStats = async () => {
     setLoading(true);
     try {
-      // TODO: Implement API call
-      // const data = await notificationService.getStats();
-      // setStats(data);
-      setStats({
-        totalNotifications: 0,
-        unreadCount: 0,
-        readCount: 0,
-        deliveryRate: 0,
-        totalTemplates: 0,
-        totalPushTokens: 0,
-      });
-      toast.info('Stats API not yet connected');
+      const data = await notificationService.getStats();
+      setStats(data);
     } catch (error: any) {
       toast.error('Failed to load statistics');
       console.error(error);
@@ -94,7 +77,7 @@ export default function NotificationStatsPage() {
         <p className="text-muted-foreground">Overview of notification delivery and engagement</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Notifications"
           value={stats?.totalNotifications.toLocaleString() || '0'}
@@ -125,20 +108,114 @@ export default function NotificationStatsPage() {
           description="Read / Total ratio"
           color="text-blue-500"
         />
+      </div>
 
+      <div className="grid gap-4 md:grid-cols-3">
         <StatCard
-          title="Templates"
-          value={stats?.totalTemplates.toLocaleString() || '0'}
-          icon={Bell}
-          description="Configured templates"
+          title="Today"
+          value={stats?.notificationsToday.toLocaleString() || '0'}
+          icon={Calendar}
+          description={`+${stats?.growthToday || 0} new`}
+          color="text-purple-500"
         />
 
         <StatCard
-          title="Push Tokens"
-          value={stats?.totalPushTokens.toLocaleString() || '0'}
-          icon={Users}
-          description="Registered devices"
+          title="This Week"
+          value={stats?.notificationsThisWeek.toLocaleString() || '0'}
+          icon={TrendingUp}
+          description={`+${stats?.growthThisWeek || 0} growth`}
+          color="text-cyan-500"
         />
+
+        <StatCard
+          title="This Month"
+          value={stats?.notificationsThisMonth.toLocaleString() || '0'}
+          icon={TrendingUp}
+          description={`+${stats?.growthThisMonth || 0} growth`}
+          color="text-indigo-500"
+        />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Notifications by Type</CardTitle>
+            <CardDescription>Distribution of notification types</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+            ) : stats?.notificationsByType && stats.notificationsByType.length > 0 ? (
+              <div className="space-y-3">
+                {stats.notificationsByType.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="min-w-[120px]">
+                        <p className="text-sm font-medium capitalize">{item.type}</p>
+                        <p className="text-xs text-muted-foreground">{item.count.toLocaleString()} notifications</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-32 rounded-full bg-secondary">
+                        <div
+                          className="h-2 rounded-full bg-primary"
+                          style={{ width: `${item.percentage}%` }}
+                        />
+                      </div>
+                      <span className="min-w-[48px] text-sm font-semibold">{item.percentage}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No data available</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Notifications by Method</CardTitle>
+            <CardDescription>Delivery method breakdown</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+            ) : stats?.notificationsByMethod && stats.notificationsByMethod.length > 0 ? (
+              <div className="space-y-3">
+                {stats.notificationsByMethod.map((item, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="min-w-[120px]">
+                        <p className="text-sm font-medium capitalize">{item.method}</p>
+                        <p className="text-xs text-muted-foreground">{item.count.toLocaleString()} notifications</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-32 rounded-full bg-secondary">
+                        <div
+                          className="h-2 rounded-full bg-primary"
+                          style={{ width: `${item.percentage}%` }}
+                        />
+                      </div>
+                      <span className="min-w-[48px] text-sm font-semibold">{item.percentage}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No data available</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
@@ -208,52 +285,90 @@ export default function NotificationStatsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>System Configuration</CardTitle>
+          <CardTitle>Recent Activity (Last 7 Days)</CardTitle>
           <CardDescription>
-            Notification system setup overview
+            Daily notification trends
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="space-y-3">
-              <Skeleton className="h-6 w-full" />
-              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+            </div>
+          ) : stats?.recentActivity && stats.recentActivity.length > 0 ? (
+            <div className="space-y-2">
+              {stats.recentActivity.map((item, index) => (
+                <div key={index} className="flex items-center justify-between rounded-lg border p-3">
+                  <div>
+                    <p className="font-medium">{item.date}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.readCount} read • {item.unreadCount} unread
+                    </p>
+                  </div>
+                  <p className="text-xl font-bold">{item.count.toLocaleString()}</p>
+                </div>
+              ))}
             </div>
           ) : (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <p className="font-medium">Notification Templates</p>
-                  <p className="text-sm text-muted-foreground">
-                    Configured message templates
-                  </p>
-                </div>
-                <p className="text-xl font-bold">{stats?.totalTemplates || 0}</p>
-              </div>
-
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <p className="font-medium">Push Token Registrations</p>
-                  <p className="text-sm text-muted-foreground">
-                    Active device tokens for push notifications
-                  </p>
-                </div>
-                <p className="text-xl font-bold">{stats?.totalPushTokens || 0}</p>
-              </div>
-
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <p className="font-medium">Overall Delivery Rate</p>
-                  <p className="text-sm text-muted-foreground">
-                    Percentage of notifications that were read
-                  </p>
-                </div>
-                <p className="text-xl font-bold">{stats?.deliveryRate.toFixed(1) || '0'}%</p>
-              </div>
-            </div>
+            <p className="text-sm text-muted-foreground">No recent activity</p>
           )}
         </CardContent>
       </Card>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Templates</CardTitle>
+            <Bell className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats?.totalTemplates.toLocaleString() || '0'}</div>
+                <p className="text-xs text-muted-foreground">Configured message templates</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Push Tokens</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats?.totalPushTokens.toLocaleString() || '0'}</div>
+                <p className="text-xs text-muted-foreground">Active device tokens</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Read Rate</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <Skeleton className="h-8 w-24" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats?.readRate.toFixed(1) || '0'}%</div>
+                <p className="text-xs text-muted-foreground">Overall engagement rate</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

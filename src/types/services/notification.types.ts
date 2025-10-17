@@ -67,12 +67,47 @@ export interface PushToken {
 // ============ Statistics ============
 
 export interface NotificationStats {
+  // Basic stats
   totalNotifications: number;
   unreadCount: number;
   readCount: number;
   deliveryRate: number;
+  readRate: number;
+  openRate: number;
   totalTemplates: number;
   totalPushTokens: number;
+  
+  // Time-based stats
+  notificationsToday: number;
+  notificationsThisWeek: number;
+  notificationsThisMonth: number;
+  
+  // Growth metrics
+  growthToday: number;
+  growthThisWeek: number;
+  growthThisMonth: number;
+  
+  // Breakdown by type
+  notificationsByType: Array<{
+    type: string;
+    count: number;
+    percentage: number;
+  }>;
+  
+  // Breakdown by method
+  notificationsByMethod: Array<{
+    method: string;
+    count: number;
+    percentage: number;
+  }>;
+  
+  // Recent activity
+  recentActivity: Array<{
+    date: string;
+    count: number;
+    readCount: number;
+    unreadCount: number;
+  }>;
 }
 
 export interface DeliveryMetrics {

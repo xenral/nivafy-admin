@@ -28,7 +28,7 @@ import {
   Zap,
   ChevronDown,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Collapsible,
@@ -125,24 +125,59 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const { user, isGod } = useAuthStore();
   const [openSections, setOpenSections] = useState<string[]>([]);
+  const isGodAdmin = isGod();
+
+  const filteredNavigation = useMemo(() => {
+    const filterNavItems = (items: NavItem[]): NavItem[] => {
+      return items
+        .filter((item) => !item.godOnly || isGodAdmin)
+        .map((item) => ({
+          ...item,
+          children: item.children ? filterNavItems(item.children) : undefined,
+        }));
+    };
+
+    return filterNavItems(navigation);
+  }, [isGodAdmin]);
+
+  useEffect(() => {
+    const activeParentTitles = filteredNavigation
+      .filter(
+        (item) =>
+          item.children &&
+          (pathname === item.href ||
+            pathname.startsWith(`${item.href}/`) ||
+            item.children.some(
+              (child) =>
+                pathname === child.href || pathname.startsWith(`${child.href}/`)
+            ))
+      )
+      .map((item) => item.title);
+
+    if (activeParentTitles.length === 0) {
+      return;
+    }
+
+    setOpenSections((prev) => {
+      const merged = [...prev];
+      let changed = false;
+
+      activeParentTitles.forEach((title) => {
+        if (!merged.includes(title)) {
+          merged.push(title);
+          changed = true;
+        }
+      });
+
+      return changed ? merged : prev;
+    });
+  }, [pathname, filteredNavigation]);
 
   const toggleSection = (title: string) => {
     setOpenSections((prev) =>
       prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]
     );
   };
-
-  // Filter items based on role
-  const filterNavItems = (items: NavItem[]): NavItem[] => {
-    return items
-      .filter((item) => !item.godOnly || isGod())
-      .map((item) => ({
-        ...item,
-        children: item.children ? filterNavItems(item.children) : undefined,
-      }));
-  };
-
-  const filteredNavigation = filterNavItems(navigation);
 
   return (
     <aside className="flex w-64 flex-col border-r bg-card">
@@ -156,57 +191,86 @@ export function AdminSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 overflow-y-auto p-4">
-        {filteredNavigation.map((item) => (
-          <div key={item.title}>
-            {item.children ? (
-              <Collapsible
-                open={openSections.includes(item.title)}
-                onOpenChange={() => toggleSection(item.title)}
-              >
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between"
-                  >
-                    <span className="flex items-center">
-                      <item.icon className="mr-3 h-4 w-4" />
-                      {item.title}
-                    </span>
-                    <ChevronDown
+        {filteredNavigation.map((item) => {
+          const children = item.children ?? [];
+          const hasChildren = children.length > 0;
+          const isParentActive =
+            pathname === item.href ||
+            pathname.startsWith(`${item.href}/`) ||
+            children.some(
+              (child) =>
+                pathname === child.href || pathname.startsWith(`${child.href}/`)
+            );
+
+          if (hasChildren) {
+            return (
+              <div key={item.title}>
+                <Collapsible
+                  open={openSections.includes(item.title)}
+                  onOpenChange={() => toggleSection(item.title)}
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
                       className={cn(
-                        'h-4 w-4 transition-transform',
-                        openSections.includes(item.title) && 'rotate-180'
-                      )}
-                    />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="ml-4 mt-1 space-y-1">
-                  {item.children.map((child) => (
-                    <Link
-                      key={child.href}
-                      href={child.href}
-                      className={cn(
-                        'flex items-center rounded-md px-3 py-2 text-sm transition-colors',
-                        pathname === child.href
+                        'w-full justify-between',
+                        isParentActive
                           ? 'bg-primary text-primary-foreground'
                           : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                       )}
                     >
-                      <child.icon className="mr-3 h-4 w-4" />
-                      {child.title}
-                      {child.godOnly && (
-                        <span className="ml-auto text-xs text-yellow-500">GOD</span>
-                      )}
-                    </Link>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            ) : (
+                      <span className="flex items-center">
+                        <item.icon className="mr-3 h-4 w-4" />
+                        {item.title}
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          'h-4 w-4 transition-transform',
+                          openSections.includes(item.title) && 'rotate-180'
+                        )}
+                      />
+                    </Button>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="ml-4 mt-1 space-y-1">
+                    {children.map((child) => {
+                      const isChildActive =
+                        pathname === child.href ||
+                        pathname.startsWith(`${child.href}/`);
+
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className={cn(
+                            'flex items-center rounded-md px-3 py-2 text-sm transition-colors',
+                            isChildActive
+                              ? 'bg-primary text-primary-foreground'
+                              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                          )}
+                        >
+                          <child.icon className="mr-3 h-4 w-4" />
+                          {child.title}
+                          {child.godOnly && (
+                            <span className="ml-auto text-xs text-yellow-500">
+                              GOD
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+            );
+          }
+
+          return (
+            <div key={item.title}>
               <Link
                 href={item.href}
                 className={cn(
                   'flex items-center rounded-md px-3 py-2 text-sm transition-colors',
-                  pathname === item.href
+                  isParentActive
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 )}
@@ -219,9 +283,9 @@ export function AdminSidebar() {
                   </span>
                 )}
               </Link>
-            )}
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </nav>
 
       {/* User Info */}

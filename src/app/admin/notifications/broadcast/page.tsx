@@ -129,17 +129,24 @@ export default function BroadcastPage() {
               <div className="space-y-2">
                 <Label htmlFor="type">Notification Type (Optional)</Label>
                 <Select
-                  value={formData.type}
-                  onValueChange={(value) => setFormData({ ...formData, type: value })}
+                  value={formData.type || 'none'}
+                  onValueChange={(value) => setFormData({ ...formData, type: value === 'none' ? '' : value })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None (Broadcast)</SelectItem>
-                    <SelectItem value={NotificationType.CHARGE}>Charge</SelectItem>
-                    <SelectItem value={NotificationType.FOLLOW}>Follow</SelectItem>
+                    <SelectItem value="none">None (System Broadcast)</SelectItem>
+                    <SelectItem value={NotificationType.OTP}>OTP</SelectItem>
                     <SelectItem value={NotificationType.COMMENT}>Comment</SelectItem>
+                    <SelectItem value={NotificationType.LIKE_COMMENT}>Like Comment</SelectItem>
+                    <SelectItem value={NotificationType.REPLY_COMMENT}>Reply Comment</SelectItem>
+                    <SelectItem value={NotificationType.LIKE_POST}>Like Post</SelectItem>
+                    <SelectItem value={NotificationType.FOLLOW}>Follow</SelectItem>
+                    <SelectItem value={NotificationType.CHARGE}>Charge</SelectItem>
+                    <SelectItem value={NotificationType.MENTION_POST}>Mention in Post</SelectItem>
+                    <SelectItem value={NotificationType.MENTION_COMMENT}>Mention in Comment</SelectItem>
+                    <SelectItem value={NotificationType.TAG_POST}>Tag in Post</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -154,8 +161,8 @@ export default function BroadcastPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="notice">Notice</SelectItem>
-                    <SelectItem value="push">Push</SelectItem>
+                    <SelectItem value="notice">In-App Notice</SelectItem>
+                    <SelectItem value="push">Push Notification</SelectItem>
                     <SelectItem value="email">Email</SelectItem>
                     <SelectItem value="sms">SMS</SelectItem>
                   </SelectContent>
