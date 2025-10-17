@@ -65,7 +65,8 @@ import {
   FileText,
   Wallet,
   MessageSquare,
-  Flag
+  Flag,
+  Bell
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth.store';
@@ -571,6 +572,13 @@ export default function UsersPage() {
                               <Link href={`/admin/chat/messages?userId=${user.id}`}>
                                 <MessageSquare className="mr-2 h-4 w-4" />
                                 Chat Messages
+                              </Link>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/notifications?userId=${user.id}`}>
+                                <Bell className="mr-2 h-4 w-4" />
+                                Notifications
                               </Link>
                             </DropdownMenuItem>
 

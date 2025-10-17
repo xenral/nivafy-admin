@@ -91,7 +91,8 @@ const navigation: NavItem[] = [
     href: '/admin/notifications',
     icon: Bell,
     children: [
-      { title: 'All Notifications', href: '/admin/notifications/list', icon: Bell },
+      { title: 'All Notifications', href: '/admin/notifications', icon: Bell },
+      { title: 'Templates', href: '/admin/notifications/templates', icon: FileText },
       { title: 'Broadcast', href: '/admin/notifications/broadcast', icon: Zap, godOnly: true },
       { title: 'Statistics', href: '/admin/notifications/stats', icon: TrendingUp },
     ],

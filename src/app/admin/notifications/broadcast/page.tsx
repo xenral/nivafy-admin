@@ -32,7 +32,8 @@ export default function BroadcastPage() {
   const [formData, setFormData] = useState({
     title: '',
     message: '',
-    type: NotificationType.BROADCAST,
+    type: '' as string,
+    method: 'notice' as string,
     targetUserIds: '',
   });
 
@@ -64,7 +65,8 @@ export default function BroadcastPage() {
       const payload: any = {
         title: formData.title,
         message: formData.message,
-        type: formData.type,
+        type: formData.type || undefined,
+        method: formData.method,
       };
 
       // Parse target user IDs if provided
@@ -72,23 +74,25 @@ export default function BroadcastPage() {
         const userIds = formData.targetUserIds
           .split(',')
           .map(id => id.trim())
-          .filter(id => id.length > 0);
+          .filter(id => id.length > 0)
+          .map(id => parseInt(id));
         
         if (userIds.length > 0) {
-          payload.targetUserIds = userIds;
+          payload.userIds = userIds;
         }
       }
 
       await notificationService.broadcast(payload);
       
-      const targetCount = payload.targetUserIds ? payload.targetUserIds.length : 'all';
+      const targetCount = payload.userIds ? payload.userIds.length : 'all';
       toast.success(`Broadcast sent to ${targetCount} users!`);
       
       // Reset form
       setFormData({
         title: '',
         message: '',
-        type: NotificationType.BROADCAST,
+        type: '',
+        method: 'notice',
         targetUserIds: '',
       });
     } catch (error: any) {
@@ -121,21 +125,42 @@ export default function BroadcastPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="type">Notification Type</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => setFormData({ ...formData, type: value as NotificationType })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NotificationType.BROADCAST}>Broadcast</SelectItem>
-                  <SelectItem value={NotificationType.SYSTEM}>System</SelectItem>
-                  <SelectItem value={NotificationType.ALERT}>Alert</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="type">Notification Type (Optional)</Label>
+                <Select
+                  value={formData.type}
+                  onValueChange={(value) => setFormData({ ...formData, type: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None (Broadcast)</SelectItem>
+                    <SelectItem value={NotificationType.CHARGE}>Charge</SelectItem>
+                    <SelectItem value={NotificationType.FOLLOW}>Follow</SelectItem>
+                    <SelectItem value={NotificationType.COMMENT}>Comment</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="method">Notification Method</Label>
+                <Select
+                  value={formData.method}
+                  onValueChange={(value) => setFormData({ ...formData, method: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="notice">Notice</SelectItem>
+                    <SelectItem value="push">Push</SelectItem>
+                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="sms">SMS</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -199,7 +224,8 @@ export default function BroadcastPage() {
                 onClick={() => setFormData({
                   title: '',
                   message: '',
-                  type: NotificationType.BROADCAST,
+                  type: '',
+                  method: 'notice',
                   targetUserIds: '',
                 })}
               >

@@ -1,0 +1,259 @@
+/**
+ * Notification Statistics Page
+ * View notification delivery metrics and statistics
+ */
+
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Bell, Send, CheckCircle, XCircle, Eye, Users } from 'lucide-react';
+import { toast } from 'sonner';
+
+interface NotificationStats {
+  totalNotifications: number;
+  unreadCount: number;
+  readCount: number;
+  deliveryRate: number;
+  totalTemplates: number;
+  totalPushTokens: number;
+}
+
+export default function NotificationStatsPage() {
+  const [stats, setStats] = useState<NotificationStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    setLoading(true);
+    try {
+      // TODO: Implement API call
+      // const data = await notificationService.getStats();
+      // setStats(data);
+      setStats({
+        totalNotifications: 0,
+        unreadCount: 0,
+        readCount: 0,
+        deliveryRate: 0,
+        totalTemplates: 0,
+        totalPushTokens: 0,
+      });
+      toast.info('Stats API not yet connected');
+    } catch (error: any) {
+      toast.error('Failed to load statistics');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const StatCard = ({
+    title,
+    value,
+    icon: Icon,
+    description,
+    color,
+  }: {
+    title: string;
+    value: string | number;
+    icon: any;
+    description?: string;
+    color?: string;
+  }) => (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className={`h-4 w-4 ${color || 'text-muted-foreground'}`} />
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <>
+            <Skeleton className="h-8 w-24" />
+            {description && <Skeleton className="mt-1 h-4 w-32" />}
+          </>
+        ) : (
+          <>
+            <div className="text-2xl font-bold">{value}</div>
+            {description && (
+              <p className="text-xs text-muted-foreground">{description}</p>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Notification Statistics</h2>
+        <p className="text-muted-foreground">Overview of notification delivery and engagement</p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <StatCard
+          title="Total Notifications"
+          value={stats?.totalNotifications.toLocaleString() || '0'}
+          icon={Bell}
+          description="All time"
+        />
+
+        <StatCard
+          title="Unread"
+          value={stats?.unreadCount.toLocaleString() || '0'}
+          icon={Eye}
+          description="Pending user attention"
+          color="text-orange-500"
+        />
+
+        <StatCard
+          title="Read"
+          value={stats?.readCount.toLocaleString() || '0'}
+          icon={CheckCircle}
+          description="Successfully viewed"
+          color="text-green-500"
+        />
+
+        <StatCard
+          title="Delivery Rate"
+          value={`${stats?.deliveryRate.toFixed(1) || '0'}%`}
+          icon={Send}
+          description="Read / Total ratio"
+          color="text-blue-500"
+        />
+
+        <StatCard
+          title="Templates"
+          value={stats?.totalTemplates.toLocaleString() || '0'}
+          icon={Bell}
+          description="Configured templates"
+        />
+
+        <StatCard
+          title="Push Tokens"
+          value={stats?.totalPushTokens.toLocaleString() || '0'}
+          icon={Users}
+          description="Registered devices"
+        />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Notification Delivery</CardTitle>
+          <CardDescription>
+            Overview of notification delivery status
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+                    <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Read Notifications</p>
+                    <p className="text-sm text-muted-foreground">
+                      Successfully viewed by users
+                    </p>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold">{stats?.readCount.toLocaleString() || '0'}</p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900">
+                    <Eye className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Unread Notifications</p>
+                    <p className="text-sm text-muted-foreground">
+                      Waiting for user attention
+                    </p>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold">{stats?.unreadCount.toLocaleString() || '0'}</p>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+                    <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Total Notifications</p>
+                    <p className="text-sm text-muted-foreground">
+                      All notifications sent
+                    </p>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold">{stats?.totalNotifications.toLocaleString() || '0'}</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>System Configuration</CardTitle>
+          <CardDescription>
+            Notification system setup overview
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-full" />
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <p className="font-medium">Notification Templates</p>
+                  <p className="text-sm text-muted-foreground">
+                    Configured message templates
+                  </p>
+                </div>
+                <p className="text-xl font-bold">{stats?.totalTemplates || 0}</p>
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <p className="font-medium">Push Token Registrations</p>
+                  <p className="text-sm text-muted-foreground">
+                    Active device tokens for push notifications
+                  </p>
+                </div>
+                <p className="text-xl font-bold">{stats?.totalPushTokens || 0}</p>
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <p className="font-medium">Overall Delivery Rate</p>
+                  <p className="text-sm text-muted-foreground">
+                    Percentage of notifications that were read
+                  </p>
+                </div>
+                <p className="text-xl font-bold">{stats?.deliveryRate.toFixed(1) || '0'}%</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
