@@ -141,7 +141,7 @@ export default function UsersPage() {
     }
   };
 
-  const refreshDetailsIfCurrent = async (userId: string) => {
+  const refreshDetailsIfCurrent = async (userId: number) => {
     if (!detailsUser || detailsUser.id !== userId) {
       return;
     }
@@ -159,7 +159,7 @@ export default function UsersPage() {
   };
 
   // Action handlers
-  const handleVerify = async (userId: string) => {
+  const handleVerify = async (userId: number) => {
     try {
       await accountService.verifyUser(userId);
       toast.success('User verified successfully');
@@ -170,12 +170,13 @@ export default function UsersPage() {
     }
   };
 
-  const handleUnverify = async (userId: string) => {
+  const handleUnverify = async (userId: number) => {
     try {
-      await accountService.unverifyUser(userId);
+      const numericId = Number(userId);
+      await accountService.unverifyUser(numericId);
       toast.success('Verification removed successfully');
       await loadUsers();
-      await refreshDetailsIfCurrent(userId);
+      await refreshDetailsIfCurrent(numericId);
     } catch (error: any) {
       toast.error(error.message || 'Failed to remove verification');
     }
@@ -188,7 +189,7 @@ export default function UsersPage() {
     }
 
     try {
-      const userId = selectedUser.id;
+      const userId = Number(selectedUser.id);
       await accountService.banUser(userId, { reason: banReason, permanent: true });
       toast.success('User banned successfully');
       setBanDialog(false);
@@ -201,12 +202,13 @@ export default function UsersPage() {
     }
   };
 
-  const handleUnban = async (userId: string) => {
+  const handleUnban = async (userId: number) => {
     try {
-      await accountService.unbanUser(userId);
+      const numericId = Number(userId);
+      await accountService.unbanUser(numericId);
       toast.success('User unbanned successfully');
       await loadUsers();
-      await refreshDetailsIfCurrent(userId);
+      await refreshDetailsIfCurrent(numericId);
     } catch (error: any) {
       toast.error(error.message || 'Failed to unban user');
     }
@@ -219,7 +221,7 @@ export default function UsersPage() {
     }
 
     try {
-      const userId = selectedUser.id;
+      const userId = Number(selectedUser.id);
       await accountService.suspendUser(userId, {
         reason: suspendReason,
         durationDays: parseInt(suspendDays),
@@ -236,12 +238,13 @@ export default function UsersPage() {
     }
   };
 
-  const handleUnsuspend = async (userId: string) => {
+  const handleUnsuspend = async (userId: number) => {
     try {
-      await accountService.unsuspendUser(userId);
+      const numericId = Number(userId);
+      await accountService.unsuspendUser(numericId);
       toast.success('User unsuspended successfully');
       await loadUsers();
-      await refreshDetailsIfCurrent(userId);
+      await refreshDetailsIfCurrent(numericId);
     } catch (error: any) {
       toast.error(error.message || 'Failed to unsuspend user');
     }
@@ -254,7 +257,7 @@ export default function UsersPage() {
     }
 
     try {
-      const userId = selectedUser.id;
+      const userId = Number(selectedUser.id);
       await accountService.shadowBanUser(userId, shadowBanReason);
       toast.success('User shadow banned successfully');
       setShadowBanDialog(false);
@@ -267,12 +270,13 @@ export default function UsersPage() {
     }
   };
 
-  const handleRemoveShadowBan = async (userId: string) => {
+  const handleRemoveShadowBan = async (userId: number) => {
     try {
-      await accountService.removeShadowBan(userId);
+      const numericId = Number(userId);
+      await accountService.removeShadowBan(numericId);
       toast.success('Shadow ban removed successfully');
       await loadUsers();
-      await refreshDetailsIfCurrent(userId);
+      await refreshDetailsIfCurrent(numericId);
     } catch (error: any) {
       toast.error(error.message || 'Failed to remove shadow ban');
     }
@@ -320,12 +324,13 @@ export default function UsersPage() {
     return <Badge variant="default" className="bg-green-500">Active</Badge>;
   };
 
-  const handleViewDetails = async (userId: string) => {
+  const handleViewDetails = async (userId: number | string) => {
     setLoadingDetails(true);
     setDetailsDialog(true);
     setActionsOpen(false);
     try {
-      const user = await accountService.getUserById(userId);
+      const numericId = Number(userId);
+      const user = await accountService.getUserById(numericId);
       setDetailsUser(user);
     } catch (error: any) {
       toast.error('Failed to load user details');
@@ -573,12 +578,12 @@ export default function UsersPage() {
                             
                             {/* Verification */}
                             {user.isVerified ? (
-                              <DropdownMenuItem onClick={() => handleUnverify(user.id)}>
+                              <DropdownMenuItem onClick={() => handleUnverify(Number(user.id))}>
                                 <UserX className="mr-2 h-4 w-4" />
                                 Remove Verification
                               </DropdownMenuItem>
                             ) : (
-                              <DropdownMenuItem onClick={() => handleVerify(user.id)}>
+                              <DropdownMenuItem onClick={() => handleVerify(Number(user.id))}>
                                 <UserCheck className="mr-2 h-4 w-4" />
                                 Verify User
                               </DropdownMenuItem>
@@ -588,7 +593,7 @@ export default function UsersPage() {
 
                             {/* Moderation Actions */}
                             {user.status === UserStatus.BANNED ? (
-                              <DropdownMenuItem onClick={() => handleUnban(user.id)}>
+                              <DropdownMenuItem onClick={() => handleUnban(Number(user.id))}>
                                 <UserCheck className="mr-2 h-4 w-4 text-green-600" />
                                 Unban User
                               </DropdownMenuItem>
@@ -605,7 +610,7 @@ export default function UsersPage() {
                             )}
 
                             {user.status === UserStatus.SUSPENDED || user.suspendedUntil ? (
-                              <DropdownMenuItem onClick={() => handleUnsuspend(user.id)}>
+                              <DropdownMenuItem onClick={() => handleUnsuspend(Number(user.id))}>
                                 <UserCheck className="mr-2 h-4 w-4 text-green-600" />
                                 Unsuspend User
                               </DropdownMenuItem>
@@ -622,7 +627,7 @@ export default function UsersPage() {
                             )}
 
                             {user.isShadowBanned ? (
-                              <DropdownMenuItem onClick={() => handleRemoveShadowBan(user.id)}>
+                              <DropdownMenuItem onClick={() => handleRemoveShadowBan(Number(user.id))}>
                                 <Eye className="mr-2 h-4 w-4 text-green-600" />
                                 Remove Shadow Ban
                               </DropdownMenuItem>
@@ -834,7 +839,7 @@ export default function UsersPage() {
                           className="w-full justify-start gap-2"
                           onClick={() => {
                             setActionsOpen(false);
-                            handleUnban(detailsUser.id);
+                            handleUnban(Number(detailsUser.id));
                           }}
                         >
                           <UserCheck className="h-4 w-4 text-green-600" />
@@ -860,7 +865,7 @@ export default function UsersPage() {
                           className="w-full justify-start gap-2"
                           onClick={() => {
                             setActionsOpen(false);
-                            handleUnsuspend(detailsUser.id);
+                            handleUnsuspend(Number(detailsUser.id));
                           }}
                         >
                           <UserCheck className="h-4 w-4 text-green-600" />
@@ -886,7 +891,7 @@ export default function UsersPage() {
                           className="w-full justify-start gap-2"
                           onClick={() => {
                             setActionsOpen(false);
-                            handleRemoveShadowBan(detailsUser.id);
+                            handleRemoveShadowBan(Number(detailsUser.id));
                           }}
                         >
                           <Eye className="h-4 w-4 text-green-600" />
@@ -912,7 +917,7 @@ export default function UsersPage() {
                           className="w-full justify-start gap-2"
                           onClick={() => {
                             setActionsOpen(false);
-                            handleUnverify(detailsUser.id);
+                            handleUnverify(Number(detailsUser.id));
                           }}
                         >
                           <UserX className="h-4 w-4" />
@@ -924,7 +929,7 @@ export default function UsersPage() {
                           className="w-full justify-start gap-2"
                           onClick={() => {
                             setActionsOpen(false);
-                            handleVerify(detailsUser.id);
+                            handleVerify(Number(detailsUser.id));
                           }}
                         >
                           <UserCheck className="h-4 w-4" />

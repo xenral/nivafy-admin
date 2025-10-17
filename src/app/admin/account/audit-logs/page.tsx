@@ -5,9 +5,9 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { accountService } from '@/lib/services';
-import { AuditLog, AuditAction, UserRole } from '@/types/nivafy';
+import { AuditLog, UserRole } from '@/types/nivafy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Shield, AlertTriangle, ChevronDown, ChevronRight, Wallet, DollarSign, Lock, Unlock, Gift, RefreshCw } from 'lucide-react';
+import { Search, Shield, AlertTriangle, ChevronDown, ChevronRight, Wallet, DollarSign, Lock, Unlock, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { useAuthStore } from '@/stores/auth.store';
@@ -50,11 +50,11 @@ export default function AuditLogsPage() {
   const [adminIdFilter, setAdminIdFilter] = useState('');
   const [targetUserIdFilter, setTargetUserIdFilter] = useState('');
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadLogs();
-  }, [page, actionFilter]);
+  }, [page, actionFilter, adminIdFilter, targetUserIdFilter]);
 
   const loadLogs = async () => {
     setLoading(true);
@@ -83,12 +83,13 @@ export default function AuditLogsPage() {
     loadLogs();
   };
 
-  const toggleRow = (id: number) => {
+  const toggleRow = (id: number | string) => {
+    const key = String(id);
     const newExpanded = new Set(expandedRows);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
+    if (newExpanded.has(key)) {
+      newExpanded.delete(key);
     } else {
-      newExpanded.add(id);
+      newExpanded.add(key);
     }
     setExpandedRows(newExpanded);
   };
@@ -320,11 +321,11 @@ export default function AuditLogsPage() {
                   </TableRow>
                 ) : (
                   logs.map((log) => (
-                    <>
-                      <TableRow key={log.id} className="cursor-pointer hover:bg-muted/50" onClick={() => toggleRow(log.id)}>
+                    <Fragment key={String(log.id)}>
+                      <TableRow className="cursor-pointer hover:bg-muted/50" onClick={() => toggleRow(log.id)}>
                         <TableCell>
                           <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                            {expandedRows.has(log.id) ? (
+                            {expandedRows.has(String(log.id)) ? (
                               <ChevronDown className="h-4 w-4" />
                             ) : (
                               <ChevronRight className="h-4 w-4" />
@@ -378,19 +379,19 @@ export default function AuditLogsPage() {
                           </Button>
                         </TableCell>
                       </TableRow>
-                      {expandedRows.has(log.id) && (
+                      {expandedRows.has(String(log.id)) && (
                         <TableRow>
                           <TableCell colSpan={7} className="bg-muted/30">
                             <div className="space-y-3 py-3">
                               {renderMetadata(log)}
-                              
+
                               {log.notes && (
                                 <div className="rounded-lg bg-background p-3 text-sm">
                                   <span className="font-semibold">Notes:</span>
                                   <p className="mt-1 text-muted-foreground">{log.notes}</p>
                                 </div>
                               )}
-                              
+
                               <div className="flex gap-4 text-xs text-muted-foreground">
                                 <div>
                                   <span className="font-semibold">IP:</span> {log.ipAddress || 'N/A'}
@@ -403,7 +404,7 @@ export default function AuditLogsPage() {
                           </TableCell>
                         </TableRow>
                       )}
-                    </>
+                    </Fragment>
                   ))
                 )}
               </TableBody>

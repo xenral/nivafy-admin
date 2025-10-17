@@ -101,40 +101,40 @@ export const accountService = {
   getUsers: (params?: PaginationParams & UserFilters) =>
     api.get<UsersResponse>(SERVICE, '/admin/users', params),
 
-  getUserById: (userId: string) =>
+  getUserById: (userId: number) =>
     api.get<User>(SERVICE, `/admin/users/${userId}`),
 
-  updateUser: (userId: string, data: UpdateUserDto) =>
+  updateUser: (userId: number, data: UpdateUserDto) =>
     api.patch<User>(SERVICE, `/admin/users/${userId}`, data),
 
-  deleteUser: (userId: string) =>
+  deleteUser: (userId: number) =>
     api.delete<void>(SERVICE, `/admin/users/${userId}`),
 
-  banUser: (userId: string, data: BanUserDto) =>
+  banUser: (userId: number, data: BanUserDto) =>
     api.post<User>(SERVICE, `/admin/users/${userId}/ban`, data),
 
-  unbanUser: (userId: string) =>
+  unbanUser: (userId: number) =>
     api.post<User>(SERVICE, `/admin/users/${userId}/unban`),
 
-  suspendUser: (userId: string, data: SuspendUserDto) =>
+  suspendUser: (userId: number, data: SuspendUserDto) =>
     api.post<User>(SERVICE, `/admin/users/${userId}/suspend`, data),
 
-  unsuspendUser: (userId: string) =>
+  unsuspendUser: (userId: number) =>
     api.post<User>(SERVICE, `/admin/users/${userId}/unsuspend`),
 
-  shadowBanUser: (userId: string, reason: string) =>
+  shadowBanUser: (userId: number, reason: string) =>
     api.post<User>(SERVICE, `/admin/users/${userId}/shadow-ban`, { reason }),
 
-  removeShadowBan: (userId: string) =>
+  removeShadowBan: (userId: number) =>
     api.delete<User>(SERVICE, `/admin/users/${userId}/shadow-ban`),
 
-  verifyUser: (userId: string) =>
+  verifyUser: (userId: number) =>
     api.post<User>(SERVICE, `/admin/users/${userId}/verify`),
 
-  unverifyUser: (userId: string) =>
+  unverifyUser: (userId: number) =>
     api.post<User>(SERVICE, `/admin/users/${userId}/unverify`),
 
-  getUserAnalytics: (userId: string) =>
+  getUserAnalytics: (userId: number) =>
     api.get<UserAnalytics>(SERVICE, `/admin/users/${userId}/analytics`),
 
   // ============ Post Management ============

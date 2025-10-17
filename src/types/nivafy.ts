@@ -2,6 +2,8 @@
  * Core Nivafy types shared across all services
  */
 
+import { AuditActionEnum } from './enums/audit-action.enum';
+
 // ============ Enums ============
 
 export enum UserRole {
@@ -86,7 +88,7 @@ export enum AuditAction {
 // ============ Base Interfaces ============
 
 export interface BaseEntity {
-  id: string;
+  id: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -206,12 +208,17 @@ export interface Strike extends BaseEntity {
 export interface AuditLog extends BaseEntity {
   adminId: number;
   admin?: User;
-  action: AuditAction;
+  action: AuditActionEnum | string;
   targetUserId?: number;
   targetUser?: User;
+  targetPostId?: number;
+  targetCommentId?: number;
+  targetReportId?: number;
   details?: any;
-  metadata?: any;
+  metadata?: Record<string, any> | null;
+  notes?: string | null;
   ipAddress?: string;
+  userAgent?: string;
 }
 
 // ============ Pagination ============
