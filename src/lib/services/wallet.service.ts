@@ -17,6 +17,7 @@ import {
   FreezeWalletDto,
   TransactionFilters,
   WalletFilters,
+  AnalyticsPeriod,
 } from '@/types/services/wallet.types';
 import { PaginationParams } from '@/types/nivafy';
 
@@ -28,8 +29,8 @@ export const walletService = {
   getStats: () =>
     api.get<WalletStats>(SERVICE, '/admin/wallet/stats'),
 
-  getRevenue: () =>
-    api.get<RevenueAnalytics>(SERVICE, '/admin/wallet/revenue'),
+  getRevenue: (period?: AnalyticsPeriod) =>
+    api.get<RevenueAnalytics>(SERVICE, '/admin/wallet/revenue', period ? { period } : undefined),
 
   // ============ Transactions ============
 

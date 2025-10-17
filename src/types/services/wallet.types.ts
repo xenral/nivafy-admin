@@ -20,6 +20,15 @@ export enum TransactionStatus {
   COMPLETED = 3,
 }
 
+export enum AnalyticsPeriod {
+  DAY = 'day',
+  WEEK = 'week',
+  MONTH = 'month',
+  QUARTER = 'quarter',
+  YEAR = 'year',
+  ALL = 'all',
+}
+
 export interface Wallet extends BaseEntity {
   userId: string;
   user?: User;
@@ -68,14 +77,13 @@ export interface WalletStats {
 }
 
 export interface RevenueAnalytics {
+  period: AnalyticsPeriod;
   totalRevenue: number;
-  revenueToday: number;
-  revenueThisWeek: number;
-  revenueThisMonth: number;
-  revenueGrowth: number;
+  transactionCount: number;
   averageTransactionValue: number;
-  revenueByDay: Array<{ date: string; revenue: number; transactions: number }>;
-  revenueByType: Array<{ type: string; revenue: number; percentage: number }>;
+  chartData: Array<{ date: string; revenue: number; transactions: number }>;
+  topSpenders: Array<{ userId: number; totalSpent: number; transactionCount: number }>;
+  revenueByType: Array<{ type: string; revenue: number; count: number; percentage: number }>;
 }
 
 // ============ DTOs ============
