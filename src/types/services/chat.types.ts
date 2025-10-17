@@ -7,13 +7,16 @@ import { BaseEntity, User, PaginatedResponse } from '../nivafy';
 // ============ Entities ============
 
 export interface Message extends BaseEntity {
-  conversationId: string;
-  senderId: string;
+  _id: string;
+  partitionKey: string; // conversation ID
+  senderId: number;
+  receiverId: number;
   sender?: User;
-  content: string;
-  isDeleted: boolean;
-  isEdited: boolean;
-  attachments?: string[];
+  receiver?: User;
+  text: string;
+  readAt?: string;
+  deletedAt?: string;
+  parent?: string; // reply to message ID
 }
 
 export interface Conversation extends BaseEntity {
@@ -41,13 +44,14 @@ export interface ChatMute extends BaseEntity {
 export interface ChatStats {
   totalMessages: number;
   messagesToday: number;
-  totalConversations: number;
-  conversationsToday: number;
-  activeConversations: number;
-  totalMutedUsers: number;
-  deletedMessagesToday: number;
-  messagesByHour: Array<{ hour: number; count: number }>;
-  topActiveUsers: Array<{ userId: string; username: string; messageCount: number }>;
+  // Optional fields that may not be implemented yet
+  totalConversations?: number;
+  conversationsToday?: number;
+  activeConversations?: number;
+  totalMutedUsers?: number;
+  deletedMessagesToday?: number;
+  messagesByHour?: Array<{ hour: number; count: number }>;
+  topActiveUsers?: Array<{ userId: string; username: string; messageCount: number }>;
 }
 
 // ============ DTOs ============

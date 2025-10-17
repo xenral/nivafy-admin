@@ -71,7 +71,7 @@ const navigation: NavItem[] = [
     children: [
       { title: 'Messages', href: '/admin/chat/messages', icon: MessageSquare },
       { title: 'Conversations', href: '/admin/chat/conversations', icon: Users },
-      { title: 'Muted Users', href: '/admin/chat/muted', icon: Shield },
+      { title: 'Muted Users', href: '/admin/chat/muted-users', icon: Shield },
       { title: 'Statistics', href: '/admin/chat/stats', icon: TrendingUp },
     ],
   },

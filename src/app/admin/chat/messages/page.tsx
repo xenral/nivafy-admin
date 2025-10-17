@@ -129,28 +129,28 @@ export default function ChatMessagesPage() {
                   </TableRow>
                 ) : (
                   messages.map((message) => (
-                    <TableRow key={message.id}>
-                      <TableCell className="font-medium">{message.sender?.username || 'Unknown'}</TableCell>
-                      <TableCell className="max-w-md truncate">{message.content}</TableCell>
+                    <TableRow key={message._id}>
+                      <TableCell className="font-medium">{message.sender?.username || `User ${message.senderId}`}</TableCell>
+                      <TableCell className="max-w-md truncate">{message.text}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">
-                        {message.conversationId.slice(0, 8)}...
+                        {message.partitionKey?.slice(0, 8) || 'N/A'}...
                       </TableCell>
                       <TableCell>
-                        {message.isDeleted ? (
+                        {message.deletedAt ? (
                           <Badge variant="destructive">Deleted</Badge>
-                        ) : message.isEdited ? (
-                          <Badge variant="outline">Edited</Badge>
+                        ) : message.readAt ? (
+                          <Badge variant="outline">Read</Badge>
                         ) : (
-                          <Badge variant="default">Active</Badge>
+                          <Badge variant="default">Unread</Badge>
                         )}
                       </TableCell>
                       <TableCell>{format(new Date(message.createdAt), 'MMM d, HH:mm')}</TableCell>
                       <TableCell className="text-right">
-                        {!message.isDeleted && (
+                        {!message.deletedAt && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setDeleteDialog(message.id)}
+                            onClick={() => setDeleteDialog(message._id)}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
