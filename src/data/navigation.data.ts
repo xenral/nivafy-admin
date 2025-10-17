@@ -9,6 +9,7 @@ import {
   Palette,
   FileText,
   Layers,
+  ClipboardList,
 } from 'lucide-react';
 
 /**
@@ -70,14 +71,15 @@ export const navigationItems: NavigationItem[] = [
   },
   {
     title: 'User Management',
-    href: '/dashboard/users',
+    href: '/users',
     icon: Users,
     description: 'Manage users and permissions',
-    submenu: [
-      { title: 'All Users', href: '/dashboard/users/list' },
-      { title: 'Roles', href: '/dashboard/users/roles' },
-      { title: 'Permissions', href: '/dashboard/users/permissions' },
-    ],
+  },
+  {
+    title: 'Post Management',
+    href: '/posts',
+    icon: ClipboardList,
+    description: 'Manage posts and articles',
   },
   {
     title: 'Settings',

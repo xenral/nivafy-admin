@@ -1,10 +1,6 @@
-import type { Metadata } from 'next';
-import { Suspense } from 'react';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Authentication | LitePanel',
-  description: 'Sign in to your LitePanel dashboard',
-};
+import { Suspense } from 'react';
 
 interface AuthLayoutProps {
   children: React.ReactNode;

@@ -4,6 +4,9 @@
  */
 
 import * as React from 'react';
+import { ResponsePostType, UserType } from '@/types/(admin)/types';
+import { PostVariantType } from '@/types/(admin)/enum';
+import { postsData as adminPostsMock, usersData as adminUsersMock } from '@/data/(admin)/data';
 
 // API Base Configuration
 const API_BASE_URL =
@@ -416,6 +419,164 @@ export const NotificationService = {
     }
 
     await apiClient.put('/notifications/read-all', {});
+  },
+};
+
+/**
+ * Admin Users Service (typed with UserType)
+ */
+export const AdminUsersService = {
+  list: async (): Promise<UserType[]> => {
+    if (process.env.NODE_ENV === 'development') {
+      return adminUsersMock as UserType[];
+    }
+    const response = await apiClient.get<UserType[]>('/admin/users');
+    return response.data;
+  },
+
+  create: async (payload: Omit<UserType, 'id'> & { id?: number }): Promise<UserType> => {
+    if (process.env.NODE_ENV === 'development') {
+      const newUser: UserType = {
+        ...(payload as UserType),
+        id: Math.max(0, ...adminUsersMock.map((u: any) => u.id)) + 1,
+      };
+      return newUser;
+    }
+    const response = await apiClient.post<UserType>('/admin/users', payload);
+    return response.data;
+  },
+
+  update: async (id: number, payload: Partial<UserType>): Promise<UserType> => {
+    if (process.env.NODE_ENV === 'development') {
+      const existing = (adminUsersMock as UserType[]).find((u) => u.id === id);
+      return { ...(existing as UserType), ...(payload as UserType) };
+    }
+    const response = await apiClient.put<UserType>(`/admin/users/${id}`, payload);
+    return response.data;
+  },
+
+  ban: async (id: number): Promise<void> => {
+    if (process.env.NODE_ENV === 'development') {
+      await new Promise((r) => setTimeout(r, 300));
+      return;
+    }
+    await apiClient.post(`/admin/users/${id}/ban`, {});
+  },
+
+  remove: async (id: number): Promise<void> => {
+    if (process.env.NODE_ENV === 'development') {
+      await new Promise((r) => setTimeout(r, 300));
+      return;
+    }
+    await apiClient.delete(`/admin/users/${id}`);
+  },
+
+  bulkRemove: async (ids: number[]): Promise<void> => {
+    if (process.env.NODE_ENV === 'development') {
+      await new Promise((r) => setTimeout(r, 300));
+      return;
+    }
+    await apiClient.post('/admin/users/bulk-delete', { ids });
+  },
+};
+
+/**
+ * Admin Posts Service (typed with ResponsePostType)
+ */
+export interface CreateAdminPostPayload {
+  description: string;
+  type: PostVariantType;
+  slides: ResponsePostType['slides'];
+  location?: ResponsePostType['location'];
+}
+
+export const AdminPostsService = {
+  list: async (): Promise<ResponsePostType[]> => {
+    if (process.env.NODE_ENV === 'development') {
+      return adminPostsMock as ResponsePostType[];
+    }
+    const response = await apiClient.get<ResponsePostType[]>('/admin/posts');
+    return response.data;
+  },
+
+  create: async (payload: CreateAdminPostPayload): Promise<ResponsePostType> => {
+    if (process.env.NODE_ENV === 'development') {
+      const nextId = Math.max(0, ...adminPostsMock.map((p: any) => p.id)) + 1;
+      const nowIso = new Date().toISOString();
+      return {
+        id: nextId,
+        commentsCount: 0,
+        likesCount: 0,
+        isLiked: false,
+        isSaved: false,
+        people: [],
+        user: undefined,
+        createdAt: nowIso,
+        ...payload,
+      } as ResponsePostType;
+    }
+    const response = await apiClient.post<ResponsePostType>('/admin/posts', payload);
+    return response.data;
+  },
+
+  update: async (
+    id: number,
+    payload: Partial<Omit<ResponsePostType, 'id'>>
+  ): Promise<ResponsePostType> => {
+    if (process.env.NODE_ENV === 'development') {
+      const existing = (adminPostsMock as ResponsePostType[]).find((p) => p.id === id);
+      return { ...(existing as ResponsePostType), ...payload };
+    }
+    const response = await apiClient.put<ResponsePostType>(`/admin/posts/${id}`, payload);
+    return response.data;
+  },
+
+  like: async (id: number): Promise<void> => {
+    if (process.env.NODE_ENV === 'development') {
+      await new Promise((r) => setTimeout(r, 200));
+      return;
+    }
+    await apiClient.post(`/admin/posts/${id}/like`, {});
+  },
+
+  unlike: async (id: number): Promise<void> => {
+    if (process.env.NODE_ENV === 'development') {
+      await new Promise((r) => setTimeout(r, 200));
+      return;
+    }
+    await apiClient.post(`/admin/posts/${id}/unlike`, {});
+  },
+
+  archive: async (id: number): Promise<void> => {
+    if (process.env.NODE_ENV === 'development') {
+      await new Promise((r) => setTimeout(r, 200));
+      return;
+    }
+    await apiClient.post(`/admin/posts/${id}/archive`, {});
+  },
+
+  remove: async (id: number): Promise<void> => {
+    if (process.env.NODE_ENV === 'development') {
+      await new Promise((r) => setTimeout(r, 200));
+      return;
+    }
+    await apiClient.delete(`/admin/posts/${id}`);
+  },
+
+  bulkArchive: async (ids: number[]): Promise<void> => {
+    if (process.env.NODE_ENV === 'development') {
+      await new Promise((r) => setTimeout(r, 300));
+      return;
+    }
+    await apiClient.post('/admin/posts/bulk-archive', { ids });
+  },
+
+  bulkRemove: async (ids: number[]): Promise<void> => {
+    if (process.env.NODE_ENV === 'development') {
+      await new Promise((r) => setTimeout(r, 300));
+      return;
+    }
+    await apiClient.post('/admin/posts/bulk-delete', { ids });
   },
 };
 
