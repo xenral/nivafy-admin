@@ -36,6 +36,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Dialog,
   DialogContent,
@@ -96,6 +97,7 @@ export default function UsersPage() {
   const [detailsDialog, setDetailsDialog] = useState(false);
   const [detailsUser, setDetailsUser] = useState<User | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -139,6 +141,18 @@ export default function UsersPage() {
     }
   };
 
+  const refreshDetailsIfCurrent = async (userId: string) => {
+    if (!detailsUser || detailsUser.id !== userId) {
+      return;
+    }
+    try {
+      const updatedUser = await accountService.getUserById(userId);
+      setDetailsUser(updatedUser);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleSearch = () => {
     setPage(1);
     loadUsers();
@@ -149,7 +163,8 @@ export default function UsersPage() {
     try {
       await accountService.verifyUser(userId);
       toast.success('User verified successfully');
-      loadUsers();
+      await loadUsers();
+      await refreshDetailsIfCurrent(userId);
     } catch (error: any) {
       toast.error(error.message || 'Failed to verify user');
     }
@@ -159,7 +174,8 @@ export default function UsersPage() {
     try {
       await accountService.unverifyUser(userId);
       toast.success('Verification removed successfully');
-      loadUsers();
+      await loadUsers();
+      await refreshDetailsIfCurrent(userId);
     } catch (error: any) {
       toast.error(error.message || 'Failed to remove verification');
     }
@@ -172,12 +188,14 @@ export default function UsersPage() {
     }
 
     try {
-      await accountService.banUser(selectedUser.id, { reason: banReason, permanent: true });
+      const userId = selectedUser.id;
+      await accountService.banUser(userId, { reason: banReason, permanent: true });
       toast.success('User banned successfully');
       setBanDialog(false);
       setBanReason('');
+      await loadUsers();
+      await refreshDetailsIfCurrent(userId);
       setSelectedUser(null);
-      loadUsers();
     } catch (error: any) {
       toast.error(error.message || 'Failed to ban user');
     }
@@ -187,7 +205,8 @@ export default function UsersPage() {
     try {
       await accountService.unbanUser(userId);
       toast.success('User unbanned successfully');
-      loadUsers();
+      await loadUsers();
+      await refreshDetailsIfCurrent(userId);
     } catch (error: any) {
       toast.error(error.message || 'Failed to unban user');
     }
@@ -200,7 +219,8 @@ export default function UsersPage() {
     }
 
     try {
-      await accountService.suspendUser(selectedUser.id, {
+      const userId = selectedUser.id;
+      await accountService.suspendUser(userId, {
         reason: suspendReason,
         durationDays: parseInt(suspendDays),
       });
@@ -208,8 +228,9 @@ export default function UsersPage() {
       setSuspendDialog(false);
       setSuspendReason('');
       setSuspendDays('7');
+      await loadUsers();
+      await refreshDetailsIfCurrent(userId);
       setSelectedUser(null);
-      loadUsers();
     } catch (error: any) {
       toast.error(error.message || 'Failed to suspend user');
     }
@@ -219,7 +240,8 @@ export default function UsersPage() {
     try {
       await accountService.unsuspendUser(userId);
       toast.success('User unsuspended successfully');
-      loadUsers();
+      await loadUsers();
+      await refreshDetailsIfCurrent(userId);
     } catch (error: any) {
       toast.error(error.message || 'Failed to unsuspend user');
     }
@@ -232,12 +254,14 @@ export default function UsersPage() {
     }
 
     try {
-      await accountService.shadowBanUser(selectedUser.id, shadowBanReason);
+      const userId = selectedUser.id;
+      await accountService.shadowBanUser(userId, shadowBanReason);
       toast.success('User shadow banned successfully');
       setShadowBanDialog(false);
       setShadowBanReason('');
+      await loadUsers();
+      await refreshDetailsIfCurrent(userId);
       setSelectedUser(null);
-      loadUsers();
     } catch (error: any) {
       toast.error(error.message || 'Failed to shadow ban user');
     }
@@ -247,7 +271,8 @@ export default function UsersPage() {
     try {
       await accountService.removeShadowBan(userId);
       toast.success('Shadow ban removed successfully');
-      loadUsers();
+      await loadUsers();
+      await refreshDetailsIfCurrent(userId);
     } catch (error: any) {
       toast.error(error.message || 'Failed to remove shadow ban');
     }
@@ -298,6 +323,7 @@ export default function UsersPage() {
   const handleViewDetails = async (userId: string) => {
     setLoadingDetails(true);
     setDetailsDialog(true);
+    setActionsOpen(false);
     try {
       const user = await accountService.getUserById(userId);
       setDetailsUser(user);
@@ -774,13 +800,181 @@ export default function UsersPage() {
       </Dialog>
 
       {/* User Details Modal */}
-      <Dialog open={detailsDialog} onOpenChange={setDetailsDialog}>
+      <Dialog
+        open={detailsDialog}
+        onOpenChange={(open) => {
+          setDetailsDialog(open);
+          if (!open) {
+            setActionsOpen(false);
+          }
+        }}
+      >
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>User Details</DialogTitle>
-            <DialogDescription>
-              Complete information about this user account
-            </DialogDescription>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <DialogTitle>User Details</DialogTitle>
+                <DialogDescription>
+                  Complete information about this user account
+                </DialogDescription>
+              </div>
+              {detailsUser && (
+                <Popover open={actionsOpen} onOpenChange={setActionsOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-64 space-y-2 p-3">
+                    <div className="space-y-1">
+                      <p className="text-xs font-semibold uppercase text-muted-foreground">Moderation</p>
+                      {detailsUser.status === UserStatus.BANNED ? (
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2"
+                          onClick={() => {
+                            setActionsOpen(false);
+                            handleUnban(detailsUser.id);
+                          }}
+                        >
+                          <UserCheck className="h-4 w-4 text-green-600" />
+                          Unban User
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2"
+                          onClick={() => {
+                            setActionsOpen(false);
+                            setSelectedUser(detailsUser);
+                            setBanDialog(true);
+                          }}
+                        >
+                          <Ban className="h-4 w-4 text-red-600" />
+                          Ban User
+                        </Button>
+                      )}
+                      {detailsUser.status === UserStatus.SUSPENDED || detailsUser.suspendedUntil ? (
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2"
+                          onClick={() => {
+                            setActionsOpen(false);
+                            handleUnsuspend(detailsUser.id);
+                          }}
+                        >
+                          <UserCheck className="h-4 w-4 text-green-600" />
+                          Unsuspend User
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2"
+                          onClick={() => {
+                            setActionsOpen(false);
+                            setSelectedUser(detailsUser);
+                            setSuspendDialog(true);
+                          }}
+                        >
+                          <Clock className="h-4 w-4 text-orange-600" />
+                          Suspend User
+                        </Button>
+                      )}
+                      {detailsUser.isShadowBanned ? (
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2"
+                          onClick={() => {
+                            setActionsOpen(false);
+                            handleRemoveShadowBan(detailsUser.id);
+                          }}
+                        >
+                          <Eye className="h-4 w-4 text-green-600" />
+                          Remove Shadow Ban
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2"
+                          onClick={() => {
+                            setActionsOpen(false);
+                            setSelectedUser(detailsUser);
+                            setShadowBanDialog(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4 text-yellow-600" />
+                          Shadow Ban
+                        </Button>
+                      )}
+                      {detailsUser.isVerified ? (
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2"
+                          onClick={() => {
+                            setActionsOpen(false);
+                            handleUnverify(detailsUser.id);
+                          }}
+                        >
+                          <UserX className="h-4 w-4" />
+                          Remove Verification
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-2"
+                          onClick={() => {
+                            setActionsOpen(false);
+                            handleVerify(detailsUser.id);
+                          }}
+                        >
+                          <UserCheck className="h-4 w-4" />
+                          Verify User
+                        </Button>
+                      )}
+                    </div>
+                    <div className="space-y-1 border-t pt-2">
+                      <p className="text-xs font-semibold uppercase text-muted-foreground">View Activity</p>
+                      <Button asChild variant="ghost" className="w-full justify-start gap-2">
+                        <Link href={`/admin/wallet/transactions?userId=${detailsUser.id}`}>
+                          <Wallet className="h-4 w-4" />
+                          Transactions
+                        </Link>
+                      </Button>
+                      <Button asChild variant="ghost" className="w-full justify-start gap-2">
+                        <Link href={`/admin/account/posts?userId=${detailsUser.id}`}>
+                          <FileText className="h-4 w-4" />
+                          Posts
+                        </Link>
+                      </Button>
+                      <Button asChild variant="ghost" className="w-full justify-start gap-2">
+                        <Link href={`/admin/account/comments?userId=${detailsUser.id}`}>
+                          <MessageSquare className="h-4 w-4" />
+                          Comments
+                        </Link>
+                      </Button>
+                      <Button asChild variant="ghost" className="w-full justify-start gap-2">
+                        <Link href={`/admin/account/reports?userId=${detailsUser.id}`}>
+                          <Flag className="h-4 w-4" />
+                          Reports
+                        </Link>
+                      </Button>
+                      <Button asChild variant="ghost" className="w-full justify-start gap-2">
+                        <Link href={`/admin/account/strikes?userId=${detailsUser.id}`}>
+                          <AlertTriangle className="h-4 w-4" />
+                          Strikes
+                        </Link>
+                      </Button>
+                      <Button asChild variant="ghost" className="w-full justify-start gap-2">
+                        <Link href={`/admin/chat/messages?userId=${detailsUser.id}`}>
+                          <MessageSquare className="h-4 w-4" />
+                          Chat Messages
+                        </Link>
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+            </div>
           </DialogHeader>
           
           {loadingDetails ? (

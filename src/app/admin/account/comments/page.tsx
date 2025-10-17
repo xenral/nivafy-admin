@@ -239,7 +239,7 @@ export default function CommentsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="max-w-md">
-                        <p className="truncate">{comment.content}</p>
+                        <p className="truncate">{comment.text}</p>
                         {comment.parentCommentId && (
                           <span className="text-xs text-muted-foreground">
                             Reply to #{comment.parentCommentId}

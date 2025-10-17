@@ -167,7 +167,7 @@ export interface Comment extends BaseEntity {
   post?: Post;
   userId: number;
   user?: User;
-  content: string;
+  text: string;
   parentCommentId?: number;
   isDeleted: boolean;
   likesCount: number;
