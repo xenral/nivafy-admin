@@ -27,10 +27,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Shield, AlertTriangle } from 'lucide-react';
+import { Search, Shield, AlertTriangle, ChevronDown, ChevronRight, Wallet, DollarSign, Lock, Unlock, Gift, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { useAuthStore } from '@/stores/auth.store';
+import { AuditActionEnum, getAuditActionLabel, getAuditActionCategory } from '@/types/enums/audit-action.enum';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export default function AuditLogsPage() {
   const { hasRole } = useAuthStore();
@@ -41,6 +49,8 @@ export default function AuditLogsPage() {
   const [actionFilter, setActionFilter] = useState('');
   const [adminIdFilter, setAdminIdFilter] = useState('');
   const [targetUserIdFilter, setTargetUserIdFilter] = useState('');
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     loadLogs();
@@ -73,27 +83,120 @@ export default function AuditLogsPage() {
     loadLogs();
   };
 
+  const toggleRow = (id: number) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedRows(newExpanded);
+  };
+
   const getActionBadge = (action: string) => {
+    const category = getAuditActionCategory(action as AuditActionEnum);
     const actionColors: Record<string, string> = {
-      USER_ROLE_CHANGED: 'bg-purple-500',
-      USER_STATUS_CHANGED: 'bg-blue-500',
-      USER_DELETED: 'bg-red-700',
-      USER_BANNED: 'bg-red-500',
-      USER_SUSPENDED: 'bg-orange-500',
-      USER_SHADOW_BANNED: 'bg-yellow-500',
-      USER_VERIFIED: 'bg-green-500',
-      POST_DELETED: 'bg-red-400',
-      COMMENT_DELETED: 'bg-red-400',
-      REPORT_REVIEWED: 'bg-blue-400',
-      STRIKE_ISSUED: 'bg-orange-600',
-      STRIKE_REMOVED: 'bg-green-400',
+      'User Management': 'bg-purple-500',
+      'Content Moderation': 'bg-red-500',
+      'Reports & Strikes': 'bg-orange-500',
+      'Wallet & Payments': 'bg-green-500',
+      'DMCA': 'bg-pink-500',
+      'System': 'bg-blue-500',
     };
 
     return (
-      <Badge className={actionColors[action] || 'bg-gray-500'}>
-        {action.replace(/_/g, ' ')}
+      <Badge className={actionColors[category] || 'bg-gray-500'}>
+        {getAuditActionLabel(action as AuditActionEnum)}
       </Badge>
     );
+  };
+
+  const getActionIcon = (action: string) => {
+    if (action.includes('WALLET_FROZEN')) return <Lock className="h-4 w-4" />;
+    if (action.includes('WALLET_UNFROZEN')) return <Unlock className="h-4 w-4" />;
+    if (action.includes('CREDITS') || action.includes('BONUS')) return <DollarSign className="h-4 w-4" />;
+    if (action.includes('TRANSACTION')) return <RefreshCw className="h-4 w-4" />;
+    if (action.includes('PAYMENT') || action.includes('STRIPE')) return <Wallet className="h-4 w-4" />;
+    return null;
+  };
+
+  const renderMetadata = (log: AuditLog) => {
+    const metadata = log.metadata as any;
+    if (!metadata) return null;
+
+    const { body, params, service } = metadata;
+
+    // Wallet actions
+    if (service === 'wallet') {
+      return (
+        <div className="space-y-2 rounded-lg bg-muted/50 p-3 text-sm">
+          <div className="flex items-center gap-2 font-semibold text-primary">
+            <Wallet className="h-4 w-4" />
+            Wallet Service Action
+          </div>
+          
+          {body?.amount && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Amount:</span>
+              <span className="font-mono font-semibold">{body.amount}</span>
+            </div>
+          )}
+          
+          {body?.assetId && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Asset ID:</span>
+              <span className="font-mono">{body.assetId}</span>
+            </div>
+          )}
+          
+          {body?.reason && (
+            <div>
+              <span className="text-muted-foreground">Reason:</span>
+              <p className="mt-1 rounded bg-background p-2 text-xs">{body.reason}</p>
+            </div>
+          )}
+          
+          {params?.transactionId && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Transaction ID:</span>
+              <span className="font-mono text-xs">{params.transactionId}</span>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // User management actions
+    if (body?.reason || body?.durationDays || body?.permanent) {
+      return (
+        <div className="space-y-2 rounded-lg bg-muted/50 p-3 text-sm">
+          {body.reason && (
+            <div>
+              <span className="text-muted-foreground">Reason:</span>
+              <p className="mt-1 rounded bg-background p-2 text-xs">{body.reason}</p>
+            </div>
+          )}
+          
+          {body.durationDays && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Duration:</span>
+              <span className="font-semibold">{body.durationDays} days</span>
+            </div>
+          )}
+          
+          {body.permanent !== undefined && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Permanent:</span>
+              <Badge variant={body.permanent ? 'destructive' : 'secondary'}>
+                {body.permanent ? 'Yes' : 'No'}
+              </Badge>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return null;
   };
 
   // Check if user is GOD
@@ -146,16 +249,16 @@ export default function AuditLogsPage() {
                 <SelectItem value="all">All Actions</SelectItem>
                 <SelectItem value="USER_ROLE_CHANGED">Role Changed</SelectItem>
                 <SelectItem value="USER_STATUS_CHANGED">Status Changed</SelectItem>
-                <SelectItem value="USER_DELETED">User Deleted</SelectItem>
                 <SelectItem value="USER_BANNED">User Banned</SelectItem>
                 <SelectItem value="USER_SUSPENDED">User Suspended</SelectItem>
-                <SelectItem value="USER_SHADOW_BANNED">Shadow Banned</SelectItem>
                 <SelectItem value="USER_VERIFIED">User Verified</SelectItem>
                 <SelectItem value="POST_DELETED">Post Deleted</SelectItem>
                 <SelectItem value="COMMENT_DELETED">Comment Deleted</SelectItem>
-                <SelectItem value="REPORT_REVIEWED">Report Reviewed</SelectItem>
-                <SelectItem value="STRIKE_ISSUED">Strike Issued</SelectItem>
-                <SelectItem value="STRIKE_REMOVED">Strike Removed</SelectItem>
+                <SelectItem value="TRANSACTION_REFUNDED">Transaction Refunded</SelectItem>
+                <SelectItem value="CREDITS_ADJUSTED">Credits Adjusted</SelectItem>
+                <SelectItem value="BONUS_CREDITS_GRANTED">Bonus Granted</SelectItem>
+                <SelectItem value="WALLET_FROZEN">Wallet Frozen</SelectItem>
+                <SelectItem value="WALLET_UNFROZEN">Wallet Unfrozen</SelectItem>
               </SelectContent>
             </Select>
 
@@ -197,13 +300,13 @@ export default function AuditLogsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
+                  <TableHead className="w-12"></TableHead>
                   <TableHead>Action</TableHead>
                   <TableHead>Admin</TableHead>
-                  <TableHead>Target User</TableHead>
-                  <TableHead>Details</TableHead>
-                  <TableHead>IP Address</TableHead>
+                  <TableHead>Target</TableHead>
+                  <TableHead>Service</TableHead>
                   <TableHead>Timestamp</TableHead>
+                  <TableHead className="text-right">Details</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -217,39 +320,90 @@ export default function AuditLogsPage() {
                   </TableRow>
                 ) : (
                   logs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="font-mono text-xs">#{log.id}</TableCell>
-                      <TableCell>{getActionBadge(log.action)}</TableCell>
-                      <TableCell>
-                        <div className="font-medium">{log.admin?.username || 'System'}</div>
-                        <div className="text-xs text-muted-foreground">ID: {log.adminId}</div>
-                      </TableCell>
-                      <TableCell>
-                        {log.targetUserId ? (
-                          <>
-                            <div className="font-medium">{log.targetUser?.username || 'Unknown'}</div>
-                            <div className="text-xs text-muted-foreground">ID: {log.targetUserId}</div>
-                          </>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="max-w-md">
-                        {log.details ? (
-                          <pre className="text-xs text-muted-foreground truncate">
-                            {typeof log.details === 'string' ? log.details : JSON.stringify(log.details, null, 2)}
-                          </pre>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-xs font-mono">
-                        {log.ipAddress || '-'}
-                      </TableCell>
-                      <TableCell className="text-sm whitespace-nowrap">
-                        {format(new Date(log.createdAt), 'MMM d, yyyy HH:mm:ss')}
-                      </TableCell>
-                    </TableRow>
+                    <>
+                      <TableRow key={log.id} className="cursor-pointer hover:bg-muted/50" onClick={() => toggleRow(log.id)}>
+                        <TableCell>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            {expandedRows.has(log.id) ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getActionIcon(log.action)}
+                            {getActionBadge(log.action)}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{log.admin?.username || 'System'}</div>
+                          <div className="text-xs text-muted-foreground">ID: {log.adminId}</div>
+                        </TableCell>
+                        <TableCell>
+                          {log.targetUserId ? (
+                            <>
+                              <div className="font-medium">{log.targetUser?.username || 'Unknown'}</div>
+                              <div className="text-xs text-muted-foreground">ID: {log.targetUserId}</div>
+                            </>
+                          ) : log.targetPostId ? (
+                            <div className="text-xs text-muted-foreground">Post #{log.targetPostId}</div>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {(log.metadata as any)?.service ? (
+                            <Badge variant="outline" className="capitalize">
+                              {(log.metadata as any).service}
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Account</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm whitespace-nowrap">
+                          {format(new Date(log.createdAt), 'MMM d, HH:mm:ss')}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedLog(log);
+                            }}
+                          >
+                            View Full
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                      {expandedRows.has(log.id) && (
+                        <TableRow>
+                          <TableCell colSpan={7} className="bg-muted/30">
+                            <div className="space-y-3 py-3">
+                              {renderMetadata(log)}
+                              
+                              {log.notes && (
+                                <div className="rounded-lg bg-background p-3 text-sm">
+                                  <span className="font-semibold">Notes:</span>
+                                  <p className="mt-1 text-muted-foreground">{log.notes}</p>
+                                </div>
+                              )}
+                              
+                              <div className="flex gap-4 text-xs text-muted-foreground">
+                                <div>
+                                  <span className="font-semibold">IP:</span> {log.ipAddress || 'N/A'}
+                                </div>
+                                <div className="max-w-md truncate">
+                                  <span className="font-semibold">User Agent:</span> {log.userAgent || 'N/A'}
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
                   ))
                 )}
               </TableBody>
@@ -285,6 +439,74 @@ export default function AuditLogsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Full Details Dialog */}
+      <Dialog open={!!selectedLog} onOpenChange={() => setSelectedLog(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Audit Log Details</DialogTitle>
+            <DialogDescription>
+              Complete information about this admin action
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedLog && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold">Action</label>
+                  <div className="mt-1">{getActionBadge(selectedLog.action)}</div>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold">Timestamp</label>
+                  <p className="mt-1 text-sm">{format(new Date(selectedLog.createdAt), 'PPpp')}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold">Admin</label>
+                  <p className="mt-1 text-sm">
+                    {selectedLog.admin?.username || 'System'} (ID: {selectedLog.adminId})
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold">Target User</label>
+                  <p className="mt-1 text-sm">
+                    {selectedLog.targetUserId
+                      ? `${selectedLog.targetUser?.username || 'Unknown'} (ID: ${selectedLog.targetUserId})`
+                      : 'N/A'}
+                  </p>
+                </div>
+              </div>
+
+              {renderMetadata(selectedLog)}
+
+              {selectedLog.notes && (
+                <div>
+                  <label className="text-sm font-semibold">Notes</label>
+                  <p className="mt-1 rounded-lg bg-muted p-3 text-sm">{selectedLog.notes}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="text-sm font-semibold">Technical Details</label>
+                <div className="mt-1 space-y-2 rounded-lg bg-muted p-3 text-xs">
+                  <div><span className="font-semibold">IP Address:</span> {selectedLog.ipAddress || 'N/A'}</div>
+                  <div><span className="font-semibold">User Agent:</span> {selectedLog.userAgent || 'N/A'}</div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold">Raw Metadata (JSON)</label>
+                <pre className="mt-1 max-h-60 overflow-auto rounded-lg bg-muted p-3 text-xs">
+                  {JSON.stringify(selectedLog.metadata, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950">
         <CardHeader>
