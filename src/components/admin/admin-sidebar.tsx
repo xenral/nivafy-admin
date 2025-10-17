@@ -42,6 +42,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   badge?: string;
   godOnly?: boolean;
+  disabled?: boolean;
   children?: NavItem[];
 }
 
@@ -79,11 +80,13 @@ const navigation: NavItem[] = [
     title: 'File Service',
     href: '/admin/files',
     icon: Image,
+    disabled: true,
+    badge: 'Coming Soon',
     children: [
-      { title: 'Files', href: '/admin/files/files', icon: FileText },
-      { title: 'AI Generations', href: '/admin/files/ai-generations', icon: Zap },
-      { title: 'Blocked Users', href: '/admin/files/blocked', icon: Shield },
-      { title: 'Statistics', href: '/admin/files/stats', icon: TrendingUp },
+      { title: 'Files', href: '/admin/files/files', icon: FileText, disabled: true },
+      { title: 'AI Generations', href: '/admin/files/ai-generations', icon: Zap, disabled: true },
+      { title: 'Blocked Users', href: '/admin/files/blocked', icon: Shield, disabled: true },
+      { title: 'Statistics', href: '/admin/files/stats', icon: TrendingUp, disabled: true },
     ],
   },
   {
@@ -93,7 +96,7 @@ const navigation: NavItem[] = [
     children: [
       { title: 'All Notifications', href: '/admin/notifications', icon: Bell },
       { title: 'Templates', href: '/admin/notifications/templates', icon: FileText },
-      { title: 'Broadcast', href: '/admin/notifications/broadcast', icon: Zap, godOnly: true },
+      { title: 'Broadcast', href: '/admin/notifications/broadcast', icon: Zap, godOnly: true, disabled: true, badge: 'Coming Soon' },
       { title: 'Statistics', href: '/admin/notifications/stats', icon: TrendingUp },
     ],
   },
@@ -101,11 +104,13 @@ const navigation: NavItem[] = [
     title: 'Search Service',
     href: '/admin/search',
     icon: Search,
+    disabled: true,
+    badge: 'Coming Soon',
     children: [
-      { title: 'Search Queries', href: '/admin/search/queries', icon: Search },
-      { title: 'Trending', href: '/admin/search/trending', icon: TrendingUp },
-      { title: 'Popular', href: '/admin/search/popular', icon: TrendingUp },
-      { title: 'Reindex', href: '/admin/search/reindex', icon: Settings, godOnly: true },
+      { title: 'Search Queries', href: '/admin/search/queries', icon: Search, disabled: true },
+      { title: 'Trending', href: '/admin/search/trending', icon: TrendingUp, disabled: true },
+      { title: 'Popular', href: '/admin/search/popular', icon: TrendingUp, disabled: true },
+      { title: 'Reindex', href: '/admin/search/reindex', icon: Settings, godOnly: true, disabled: true },
     ],
   },
   {
@@ -212,9 +217,12 @@ export function AdminSidebar() {
                   <CollapsibleTrigger asChild>
                     <Button
                       variant="ghost"
+                      disabled={item.disabled}
                       className={cn(
                         'w-full justify-between',
-                        isParentActive
+                        item.disabled
+                          ? 'cursor-not-allowed opacity-50'
+                          : isParentActive
                           ? 'bg-primary text-primary-foreground'
                           : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                       )}
@@ -240,17 +248,29 @@ export function AdminSidebar() {
                       return (
                         <Link
                           key={child.href}
-                          href={child.href}
+                          href={child.disabled ? '#' : child.href}
+                          onClick={(e) => {
+                            if (child.disabled) {
+                              e.preventDefault();
+                            }
+                          }}
                           className={cn(
                             'flex items-center rounded-md px-3 py-2 text-sm transition-colors',
-                            isChildActive
+                            child.disabled
+                              ? 'cursor-not-allowed opacity-50'
+                              : isChildActive
                               ? 'bg-primary text-primary-foreground'
                               : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                           )}
                         >
                           <child.icon className="mr-3 h-4 w-4" />
                           {child.title}
-                          {child.godOnly && (
+                          {child.badge && (
+                            <span className="ml-auto text-xs text-blue-500">
+                              {child.badge}
+                            </span>
+                          )}
+                          {child.godOnly && !child.badge && (
                             <span className="ml-auto text-xs text-yellow-500">
                               GOD
                             </span>
@@ -267,10 +287,17 @@ export function AdminSidebar() {
           return (
             <div key={item.title}>
               <Link
-                href={item.href}
+                href={item.disabled ? '#' : item.href}
+                onClick={(e) => {
+                  if (item.disabled) {
+                    e.preventDefault();
+                  }
+                }}
                 className={cn(
                   'flex items-center rounded-md px-3 py-2 text-sm transition-colors',
-                  isParentActive
+                  item.disabled
+                    ? 'cursor-not-allowed opacity-50'
+                    : isParentActive
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 )}
@@ -278,7 +305,7 @@ export function AdminSidebar() {
                 <item.icon className="mr-3 h-4 w-4" />
                 {item.title}
                 {item.badge && (
-                  <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                  <span className="ml-auto rounded-md bg-blue-500/10 px-2 py-0.5 text-xs text-blue-500">
                     {item.badge}
                   </span>
                 )}
