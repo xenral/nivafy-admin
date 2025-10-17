@@ -95,15 +95,18 @@ export interface RefundTransactionDto {
 export interface AdjustCreditsDto {
   amount: number;
   reason: string;
+  assetId?: number;
 }
 
 export interface GrantBonusCreditsDto {
   amount: number;
   reason: string;
+  assetId?: number;
 }
 
 export interface FreezeWalletDto {
   reason: string;
+  assetId?: number;
 }
 
 export interface TransactionFilters {

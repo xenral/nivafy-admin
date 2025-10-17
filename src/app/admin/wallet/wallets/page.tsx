@@ -53,6 +53,7 @@ export default function WalletsPage() {
   const [selectedBalance, setSelectedBalance] = useState<Balance | null>(null);
   const [reason, setReason] = useState('');
   const [amount, setAmount] = useState('');
+  const [assetId, setAssetId] = useState<number>(1);
 
   useEffect(() => {
     loadBalances();
@@ -86,6 +87,7 @@ export default function WalletsPage() {
     setSelectedBalance(balance);
     setReason('');
     setAmount('');
+    setAssetId(balance.assetId || 10); // Default to balance's asset or 1
   };
 
   const closeDialog = () => {
@@ -93,12 +95,13 @@ export default function WalletsPage() {
     setSelectedBalance(null);
     setReason('');
     setAmount('');
+    setAssetId(1);
   };
 
   const handleFreezeWallet = async () => {
     if (!selectedBalance || !reason) return;
     try {
-      await walletService.freezeWallet(String(selectedBalance.userId), { reason });
+      await walletService.freezeWallet(String(selectedBalance.userId), { reason, assetId });
       toast.success('Wallet frozen successfully');
       closeDialog();
       loadBalances();
@@ -110,7 +113,7 @@ export default function WalletsPage() {
   const handleUnfreezeWallet = async () => {
     if (!selectedBalance) return;
     try {
-      await walletService.unfreezeWallet(String(selectedBalance.userId));
+      await walletService.unfreezeWallet(String(selectedBalance.userId), assetId);
       toast.success('Wallet unfrozen successfully');
       closeDialog();
       loadBalances();
@@ -125,6 +128,7 @@ export default function WalletsPage() {
       await walletService.adjustCredits(String(selectedBalance.userId), {
         amount: parseFloat(amount),
         reason,
+        assetId,
       });
       toast.success('Credits adjusted successfully');
       closeDialog();
@@ -140,6 +144,7 @@ export default function WalletsPage() {
       await walletService.grantBonusCredits(String(selectedBalance.userId), {
         amount: parseFloat(amount),
         reason,
+        assetId,
       });
       toast.success('Bonus credits granted successfully');
       closeDialog();
@@ -297,6 +302,18 @@ export default function WalletsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
+              <Label htmlFor="freezeAssetId">Asset ID</Label>
+              <Input
+                id="freezeAssetId"
+                type="number"
+                min="1"
+                value={assetId}
+                onChange={(e) => setAssetId(parseInt(e.target.value) || 1)}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Current: {selectedBalance?.asset?.name || 'Unknown'}</p>
+            </div>
+            <div>
               <Label htmlFor="freezeReason">Reason for Freezing</Label>
               <Textarea
                 id="freezeReason"
@@ -326,9 +343,23 @@ export default function WalletsPage() {
               User ID: {selectedBalance?.userId}
             </DialogDescription>
           </DialogHeader>
-          <p className="text-sm text-muted-foreground">
-            Are you sure you want to unfreeze this wallet? The user will be able to make transactions again.
-          </p>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="unfreezeAssetId">Asset ID</Label>
+              <Input
+                id="unfreezeAssetId"
+                type="number"
+                min="1"
+                value={assetId}
+                onChange={(e) => setAssetId(parseInt(e.target.value) || 1)}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Current: {selectedBalance?.asset?.name || 'Unknown'}</p>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to unfreeze this wallet? The user will be able to make transactions again.
+            </p>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeDialog}>Cancel</Button>
             <Button onClick={handleUnfreezeWallet}>
@@ -349,6 +380,18 @@ export default function WalletsPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div>
+              <Label htmlFor="adjustAssetId">Asset ID</Label>
+              <Input
+                id="adjustAssetId"
+                type="number"
+                min="1"
+                value={assetId}
+                onChange={(e) => setAssetId(parseInt(e.target.value) || 1)}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Current: {selectedBalance?.asset?.name || 'Unknown'}</p>
+            </div>
             <div>
               <Label htmlFor="adjustAmount">Amount (use negative for deduction)</Label>
               <Input
@@ -392,6 +435,18 @@ export default function WalletsPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div>
+              <Label htmlFor="grantAssetId">Asset ID</Label>
+              <Input
+                id="grantAssetId"
+                type="number"
+                min="1"
+                value={assetId}
+                onChange={(e) => setAssetId(parseInt(e.target.value) || 1)}
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">Current: {selectedBalance?.asset?.name || 'Unknown'}</p>
+            </div>
             <div>
               <Label htmlFor="grantAmount">Amount</Label>
               <Input
