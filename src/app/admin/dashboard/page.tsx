@@ -97,7 +97,11 @@ export default function DashboardPage() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{accountStats?.totalUsers.toLocaleString() || 0}</div>
+              <div className="text-2xl font-bold">
+                {accountStats?.totalUsers != null
+                  ? accountStats.totalUsers.toLocaleString()
+                  : '0'}
+              </div>
               <p className="text-xs text-muted-foreground">
                 +{accountStats?.newUsersToday || 0} today
               </p>
@@ -110,7 +114,11 @@ export default function DashboardPage() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{accountStats?.activeUsers.toLocaleString() || 0}</div>
+              <div className="text-2xl font-bold">
+                {accountStats?.activeUsers != null
+                  ? accountStats.activeUsers.toLocaleString()
+                  : '0'}
+              </div>
               <p className="text-xs text-muted-foreground">Currently active</p>
             </CardContent>
           </Card>
@@ -121,7 +129,11 @@ export default function DashboardPage() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{accountStats?.totalPosts.toLocaleString() || 0}</div>
+              <div className="text-2xl font-bold">
+                {accountStats?.totalPosts != null
+                  ? accountStats.totalPosts.toLocaleString()
+                  : '0'}
+              </div>
               <p className="text-xs text-muted-foreground">
                 +{accountStats?.postsToday || 0} today
               </p>
@@ -134,7 +146,11 @@ export default function DashboardPage() {
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{accountStats?.totalComments.toLocaleString() || 0}</div>
+              <div className="text-2xl font-bold">
+                {accountStats?.totalComments != null
+                  ? accountStats.totalComments.toLocaleString()
+                  : '0'}
+              </div>
               <p className="text-xs text-muted-foreground">All time</p>
             </CardContent>
           </Card>
@@ -155,11 +171,19 @@ export default function DashboardPage() {
           <CardContent className="space-y-2">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Total Messages</span>
-              <span className="font-medium">{chatStats?.totalMessages.toLocaleString() || 0}</span>
+              <span className="font-medium">
+                {chatStats?.totalMessages != null
+                  ? chatStats.totalMessages.toLocaleString()
+                  : '0'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Messages Today</span>
-              <span className="font-medium">{chatStats?.messagesToday.toLocaleString() || 0}</span>
+              <span className="font-medium">
+                {chatStats?.messagesToday != null
+                  ? chatStats.messagesToday.toLocaleString()
+                  : '0'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Active Conversations</span>
@@ -180,7 +204,11 @@ export default function DashboardPage() {
           <CardContent className="space-y-2">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Total Files</span>
-              <span className="font-medium">{fileStats?.totalFiles.toLocaleString() || 0}</span>
+              <span className="font-medium">
+                {fileStats?.totalFiles != null
+                  ? fileStats.totalFiles.toLocaleString()
+                  : '0'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Files Today</span>
@@ -205,15 +233,27 @@ export default function DashboardPage() {
           <CardContent className="space-y-2">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Total Sent</span>
-              <span className="font-medium">{notificationStats?.sentNotifications.toLocaleString() || 0}</span>
+              <span className="font-medium">
+                {notificationStats?.totalNotifications != null
+                  ? notificationStats.totalNotifications.toLocaleString()
+                  : '0'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Sent Today</span>
-              <span className="font-medium">{notificationStats?.notificationsToday || 0}</span>
+              <span className="font-medium">
+                {notificationStats?.notificationsToday != null
+                  ? notificationStats.notificationsToday.toLocaleString()
+                  : '0'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Delivery Rate</span>
-              <span className="font-medium">{notificationStats?.deliveryRate.toFixed(1) || 0}%</span>
+              <span className="font-medium">
+                {notificationStats?.deliveryRate != null
+                  ? notificationStats.deliveryRate.toFixed(1)
+                  : '0'}%
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -230,7 +270,11 @@ export default function DashboardPage() {
           <CardContent className="space-y-2">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Total Searches</span>
-              <span className="font-medium">{searchStats?.totalSearches.toLocaleString() || 0}</span>
+              <span className="font-medium">
+                {searchStats?.totalSearches != null
+                  ? searchStats.totalSearches.toLocaleString()
+                  : '0'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Searches Today</span>
