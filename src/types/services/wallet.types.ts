@@ -7,18 +7,17 @@ import { BaseEntity, User, PaginatedResponse } from '../nivafy';
 // ============ Entities ============
 
 export enum TransactionType {
-  CREDIT = 'CREDIT',
-  DEBIT = 'DEBIT',
-  REFUND = 'REFUND',
-  BONUS = 'BONUS',
-  ADJUSTMENT = 'ADJUSTMENT',
+  CHARGE = 1,
+  AI_IMAGE = 2,
+  AI_CONVERSATION = 3,
+  SUBSCRIPTION = 4,
+  MANUAL = 5,
 }
 
 export enum TransactionStatus {
-  PENDING = 'PENDING',
-  COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED',
-  REFUNDED = 'REFUNDED',
+  FREEZED = 1,
+  FAILURE = 2,
+  COMPLETED = 3,
 }
 
 export interface Wallet extends BaseEntity {
@@ -33,16 +32,29 @@ export interface Wallet extends BaseEntity {
 }
 
 export interface Transaction extends BaseEntity {
-  walletId: string;
-  wallet?: Wallet;
+  userId: number;
+  assetId: number;
+  asset?: Asset;
   type: TransactionType;
-  amount: number;
+  amount: string;
   status: TransactionStatus;
-  description: string;
-  metadata?: Record<string, any>;
-  refundedAt?: string;
-  refundedBy?: string;
-  refundReason?: string;
+  orderId: string;
+  frozenExpiresIn?: string;
+}
+
+export interface Asset extends BaseEntity {
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
+export interface Balance extends BaseEntity {
+  userId: number;
+  assetId: number;
+  asset?: Asset;
+  amount: string;
+  available: string;
+  frozen: string;
 }
 
 // ============ Statistics ============
@@ -107,4 +119,5 @@ export interface WalletFilters {
 // ============ Response Types ============
 
 export type TransactionsResponse = PaginatedResponse<Transaction>;
-export type WalletsResponse = PaginatedResponse<Wallet>;
+export type WalletsResponse = PaginatedResponse<Balance>;
+export type BalancesResponse = PaginatedResponse<Balance>;

@@ -45,8 +45,8 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [typeFilter, setTypeFilter] = useState<TransactionType | ''>('');
-  const [statusFilter, setStatusFilter] = useState<TransactionStatus | ''>('');
+  const [typeFilter, setTypeFilter] = useState<TransactionType | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<TransactionStatus | 'all'>('all');
   const [refundDialog, setRefundDialog] = useState<Transaction | null>(null);
   const [refundReason, setRefundReason] = useState('');
 
@@ -60,8 +60,8 @@ export default function TransactionsPage() {
       const params: any = {
         page,
         limit: 20,
-        type: typeFilter || undefined,
-        status: statusFilter || undefined,
+        type: typeFilter !== 'all' ? typeFilter : undefined,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
       };
       const response = await walletService.getTransactions(params);
       setTransactions(response.data);
@@ -89,27 +89,35 @@ export default function TransactionsPage() {
 
   const getStatusBadge = (status: TransactionStatus) => {
     switch (status) {
-      case TransactionStatus.PENDING:
-        return <Badge variant="outline">Pending</Badge>;
+      case TransactionStatus.FREEZED:
+        return <Badge variant="outline">Frozen</Badge>;
       case TransactionStatus.COMPLETED:
         return <Badge variant="default" className="bg-green-500">Completed</Badge>;
-      case TransactionStatus.FAILED:
+      case TransactionStatus.FAILURE:
         return <Badge variant="destructive">Failed</Badge>;
-      case TransactionStatus.REFUNDED:
-        return <Badge variant="secondary">Refunded</Badge>;
+      default:
+        return <Badge variant="secondary">Unknown</Badge>;
     }
   };
 
   const getTypeBadge = (type: TransactionType) => {
-    const colors: Record<TransactionType, string> = {
-      [TransactionType.CREDIT]: 'bg-green-500',
-      [TransactionType.DEBIT]: 'bg-red-500',
-      [TransactionType.REFUND]: 'bg-blue-500',
-      [TransactionType.BONUS]: 'bg-purple-500',
-      [TransactionType.ADJUSTMENT]: 'bg-orange-500',
+    const labels: Record<TransactionType, string> = {
+      [TransactionType.CHARGE]: 'Charge',
+      [TransactionType.AI_IMAGE]: 'AI Image',
+      [TransactionType.AI_CONVERSATION]: 'AI Chat',
+      [TransactionType.SUBSCRIPTION]: 'Subscription',
+      [TransactionType.MANUAL]: 'Manual',
     };
     
-    return <Badge className={colors[type]}>{type}</Badge>;
+    const colors: Record<TransactionType, string> = {
+      [TransactionType.CHARGE]: 'bg-green-500',
+      [TransactionType.AI_IMAGE]: 'bg-purple-500',
+      [TransactionType.AI_CONVERSATION]: 'bg-blue-500',
+      [TransactionType.SUBSCRIPTION]: 'bg-orange-500',
+      [TransactionType.MANUAL]: 'bg-gray-500',
+    };
+    
+    return <Badge className={colors[type]}>{labels[type]}</Badge>;
   };
 
   return (
@@ -126,30 +134,29 @@ export default function TransactionsPage() {
         </CardHeader>
         <CardContent>
           <div className="mb-4 flex items-center space-x-2">
-            <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as TransactionType | '')}>
+            <Select value={String(typeFilter)} onValueChange={(value) => setTypeFilter(value === 'all' ? 'all' : Number(value) as TransactionType)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
-                <SelectItem value={TransactionType.CREDIT}>Credit</SelectItem>
-                <SelectItem value={TransactionType.DEBIT}>Debit</SelectItem>
-                <SelectItem value={TransactionType.REFUND}>Refund</SelectItem>
-                <SelectItem value={TransactionType.BONUS}>Bonus</SelectItem>
-                <SelectItem value={TransactionType.ADJUSTMENT}>Adjustment</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value={String(TransactionType.CHARGE)}>Charge</SelectItem>
+                <SelectItem value={String(TransactionType.AI_IMAGE)}>AI Image</SelectItem>
+                <SelectItem value={String(TransactionType.AI_CONVERSATION)}>AI Chat</SelectItem>
+                <SelectItem value={String(TransactionType.SUBSCRIPTION)}>Subscription</SelectItem>
+                <SelectItem value={String(TransactionType.MANUAL)}>Manual</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as TransactionStatus | '')}>
+            <Select value={String(statusFilter)} onValueChange={(value) => setStatusFilter(value === 'all' ? 'all' : Number(value) as TransactionStatus)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
-                <SelectItem value={TransactionStatus.PENDING}>Pending</SelectItem>
-                <SelectItem value={TransactionStatus.COMPLETED}>Completed</SelectItem>
-                <SelectItem value={TransactionStatus.FAILED}>Failed</SelectItem>
-                <SelectItem value={TransactionStatus.REFUNDED}>Refunded</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value={String(TransactionStatus.FREEZED)}>Frozen</SelectItem>
+                <SelectItem value={String(TransactionStatus.COMPLETED)}>Completed</SelectItem>
+                <SelectItem value={String(TransactionStatus.FAILURE)}>Failed</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -184,18 +191,17 @@ export default function TransactionsPage() {
                   transactions.map((transaction) => (
                     <TableRow key={transaction.id}>
                       <TableCell className="font-mono text-xs">
-                        {transaction.id.slice(0, 8)}...
+                        {transaction.id}
                       </TableCell>
                       <TableCell>{getTypeBadge(transaction.type)}</TableCell>
                       <TableCell className="font-medium">
-                        ${transaction.amount.toFixed(2)}
+                        {transaction.asset?.symbol || ''} {parseFloat(transaction.amount).toFixed(2)}
                       </TableCell>
-                      <TableCell className="max-w-xs truncate">{transaction.description}</TableCell>
+                      <TableCell className="max-w-xs truncate">{transaction.orderId}</TableCell>
                       <TableCell>{getStatusBadge(transaction.status)}</TableCell>
                       <TableCell>{format(new Date(transaction.createdAt), 'MMM d, yyyy HH:mm')}</TableCell>
                       <TableCell className="text-right">
-                        {transaction.status === TransactionStatus.COMPLETED && 
-                         transaction.type !== TransactionType.REFUND && (
+                        {transaction.status === TransactionStatus.COMPLETED && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -253,12 +259,12 @@ export default function TransactionsPage() {
             <div className="space-y-4">
               <div>
                 <Label>Amount</Label>
-                <p className="mt-1 text-lg font-bold">${refundDialog.amount.toFixed(2)}</p>
+                <p className="mt-1 text-lg font-bold">{refundDialog.asset?.symbol || ''} {parseFloat(refundDialog.amount).toFixed(2)}</p>
               </div>
               
               <div>
-                <Label>Original Description</Label>
-                <p className="mt-1 text-sm">{refundDialog.description}</p>
+                <Label>Order ID</Label>
+                <p className="mt-1 text-sm">{refundDialog.orderId}</p>
               </div>
               
               <div>
