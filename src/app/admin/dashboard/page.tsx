@@ -87,9 +87,9 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">Overview of all Nivafy services</p>
       </div>
 
-      {/* Account Service Stats */}
+      {/* Social Stats */}
       <div>
-        <h3 className="mb-4 text-xl font-semibold">Account Service</h3>
+        <h3 className="mb-4 text-xl font-semibold">Social</h3>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -159,12 +159,12 @@ export default function DashboardPage() {
 
       {/* Other Services Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {/* Chat Service */}
+        {/* Communication */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <MessageSquare className="mr-2 h-5 w-5" />
-              Chat Service
+              Communication
             </CardTitle>
             <CardDescription>Messages and conversations</CardDescription>
           </CardHeader>
@@ -197,7 +197,7 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <FileText className="mr-2 h-5 w-5" />
-              File Service
+              Media
             </CardTitle>
             <CardDescription>Files and AI generations</CardDescription>
           </CardHeader>
@@ -226,7 +226,7 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Bell className="mr-2 h-5 w-5" />
-              Notification Service
+              Notification
             </CardTitle>
             <CardDescription>Notifications and delivery</CardDescription>
           </CardHeader>
@@ -263,7 +263,7 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Search className="mr-2 h-5 w-5" />
-              Search Service
+              Search
             </CardTitle>
             <CardDescription>Search queries and indexing</CardDescription>
           </CardHeader>
@@ -287,12 +287,12 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Wallet Service */}
+        {/* Finance */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <Wallet className="mr-2 h-5 w-5" />
-              Wallet Service
+              Finance
             </CardTitle>
             <CardDescription>Wallet balances and revenue</CardDescription>
           </CardHeader>

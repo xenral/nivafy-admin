@@ -53,7 +53,7 @@ const navigation: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    title: 'Account Service',
+    title: 'Social',
     href: '/admin/account',
     icon: Users,
     children: [
@@ -65,8 +65,19 @@ const navigation: NavItem[] = [
       { title: 'Audit Logs', href: '/admin/account/audit-logs', icon: ScrollText, godOnly: true },
     ],
   },
+    {
+    title: 'Finance',
+    href: '/admin/wallet',
+    icon: Wallet,
+    children: [
+      { title: 'Transactions', href: '/admin/wallet/transactions', icon: FileText },
+      { title: 'Wallets', href: '/admin/wallet/wallets', icon: Wallet },
+      { title: 'Revenue', href: '/admin/wallet/revenue', icon: TrendingUp, godOnly: true },
+      { title: 'Statistics', href: '/admin/wallet/stats', icon: TrendingUp },
+    ],
+  },
   {
-    title: 'Chat Service',
+    title: 'Communication',
     href: '/admin/chat',
     icon: MessageSquare,
     children: [
@@ -76,8 +87,19 @@ const navigation: NavItem[] = [
       { title: 'Statistics', href: '/admin/chat/stats', icon: TrendingUp },
     ],
   },
+    {
+    title: 'Notification',
+    href: '/admin/notifications',
+    icon: Bell,
+    children: [
+      { title: 'All Notifications', href: '/admin/notifications', icon: Bell },
+      { title: 'Templates', href: '/admin/notifications/templates', icon: FileText },
+      { title: 'Broadcast', href: '/admin/notifications/broadcast', icon: Zap, godOnly: true, disabled: true, badge: 'Coming Soon' },
+      { title: 'Statistics', href: '/admin/notifications/stats', icon: TrendingUp },
+    ],
+  },
   {
-    title: 'File Service',
+    title: 'Media',
     href: '/admin/files',
     icon: Image,
     disabled: true,
@@ -87,17 +109,6 @@ const navigation: NavItem[] = [
       { title: 'AI Generations', href: '/admin/files/ai-generations', icon: Zap, disabled: true },
       { title: 'Blocked Users', href: '/admin/files/blocked', icon: Shield, disabled: true },
       { title: 'Statistics', href: '/admin/files/stats', icon: TrendingUp, disabled: true },
-    ],
-  },
-  {
-    title: 'Notification Service',
-    href: '/admin/notifications',
-    icon: Bell,
-    children: [
-      { title: 'All Notifications', href: '/admin/notifications', icon: Bell },
-      { title: 'Templates', href: '/admin/notifications/templates', icon: FileText },
-      { title: 'Broadcast', href: '/admin/notifications/broadcast', icon: Zap, godOnly: true, disabled: true, badge: 'Coming Soon' },
-      { title: 'Statistics', href: '/admin/notifications/stats', icon: TrendingUp },
     ],
   },
   {
@@ -113,17 +124,7 @@ const navigation: NavItem[] = [
       { title: 'Reindex', href: '/admin/search/reindex', icon: Settings, godOnly: true, disabled: true },
     ],
   },
-  {
-    title: 'Wallet Service',
-    href: '/admin/wallet',
-    icon: Wallet,
-    children: [
-      { title: 'Transactions', href: '/admin/wallet/transactions', icon: FileText },
-      { title: 'Wallets', href: '/admin/wallet/wallets', icon: Wallet },
-      { title: 'Revenue', href: '/admin/wallet/revenue', icon: TrendingUp, godOnly: true },
-      { title: 'Statistics', href: '/admin/wallet/stats', icon: TrendingUp },
-    ],
-  },
+
 ];
 
 export function AdminSidebar() {
