@@ -55,10 +55,10 @@ export const walletService = {
     api.get<Wallet>(SERVICE, `/admin/wallet/users/${userId}/wallet`),
 
   freezeWallet: (userId: string, data: FreezeWalletDto) =>
-    api.post<Wallet>(SERVICE, `/admin/wallet/users/${userId}/wallet/freeze`, data),
+    api.put<Wallet>(SERVICE, `/admin/wallet/users/${userId}/wallet/freeze`, data),
 
   unfreezeWallet: (userId: string) =>
-    api.post<Wallet>(SERVICE, `/admin/wallet/users/${userId}/wallet/unfreeze`),
+    api.put<Wallet>(SERVICE, `/admin/wallet/users/${userId}/wallet/unfreeze`, {}),
 
   // ============ Credit Management (GOD only) ============
 

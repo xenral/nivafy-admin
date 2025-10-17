@@ -11,6 +11,24 @@ import { Balance } from '@/types/services/wallet.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Table,
   TableBody,
@@ -19,9 +37,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, Wallet } from 'lucide-react';
+import { Search, Wallet, MoreVertical, Lock, Unlock, DollarSign, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+
+type DialogType = 'freeze' | 'unfreeze' | 'adjust' | 'grant' | null;
 
 export default function WalletsPage() {
   const [balances, setBalances] = useState<Balance[]>([]);
@@ -29,6 +49,10 @@ export default function WalletsPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [userIdSearch, setUserIdSearch] = useState('');
+  const [dialogType, setDialogType] = useState<DialogType>(null);
+  const [selectedBalance, setSelectedBalance] = useState<Balance | null>(null);
+  const [reason, setReason] = useState('');
+  const [amount, setAmount] = useState('');
 
   useEffect(() => {
     loadBalances();
@@ -55,6 +79,74 @@ export default function WalletsPage() {
   const handleSearch = () => {
     setPage(1);
     loadBalances();
+  };
+
+  const openDialog = (type: DialogType, balance: Balance) => {
+    setDialogType(type);
+    setSelectedBalance(balance);
+    setReason('');
+    setAmount('');
+  };
+
+  const closeDialog = () => {
+    setDialogType(null);
+    setSelectedBalance(null);
+    setReason('');
+    setAmount('');
+  };
+
+  const handleFreezeWallet = async () => {
+    if (!selectedBalance || !reason) return;
+    try {
+      await walletService.freezeWallet(String(selectedBalance.userId), { reason });
+      toast.success('Wallet frozen successfully');
+      closeDialog();
+      loadBalances();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to freeze wallet');
+    }
+  };
+
+  const handleUnfreezeWallet = async () => {
+    if (!selectedBalance) return;
+    try {
+      await walletService.unfreezeWallet(String(selectedBalance.userId));
+      toast.success('Wallet unfrozen successfully');
+      closeDialog();
+      loadBalances();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to unfreeze wallet');
+    }
+  };
+
+  const handleAdjustCredits = async () => {
+    if (!selectedBalance || !amount || !reason) return;
+    try {
+      await walletService.adjustCredits(String(selectedBalance.userId), {
+        amount: parseFloat(amount),
+        reason,
+      });
+      toast.success('Credits adjusted successfully');
+      closeDialog();
+      loadBalances();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to adjust credits');
+    }
+  };
+
+  const handleGrantCredits = async () => {
+    if (!selectedBalance || !amount || !reason) return;
+    try {
+      await walletService.grantBonusCredits(String(selectedBalance.userId), {
+        amount: parseFloat(amount),
+        reason,
+      });
+      toast.success('Bonus credits granted successfully');
+      closeDialog();
+      loadBalances();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to grant bonus credits');
+    }
   };
 
   return (
@@ -94,6 +186,7 @@ export default function WalletsPage() {
                   <TableHead>Available</TableHead>
                   <TableHead>Frozen</TableHead>
                   <TableHead>Last Updated</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -129,6 +222,37 @@ export default function WalletsPage() {
                         {parseFloat(balance.frozen).toFixed(2)}
                       </TableCell>
                       <TableCell>{format(new Date(balance.updatedAt || balance.createdAt), 'MMM d, yyyy HH:mm')}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Wallet Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => openDialog('freeze', balance)}>
+                              <Lock className="mr-2 h-4 w-4" />
+                              Freeze Wallet
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openDialog('unfreeze', balance)}>
+                              <Unlock className="mr-2 h-4 w-4" />
+                              Unfreeze Wallet
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel>GOD Only</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => openDialog('adjust', balance)}>
+                              <DollarSign className="mr-2 h-4 w-4" />
+                              Adjust Credits
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openDialog('grant', balance)}>
+                              <Gift className="mr-2 h-4 w-4" />
+                              Grant Bonus
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -161,6 +285,146 @@ export default function WalletsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Freeze Wallet Dialog */}
+      <Dialog open={dialogType === 'freeze'} onOpenChange={closeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Freeze Wallet</DialogTitle>
+            <DialogDescription>
+              User ID: {selectedBalance?.userId}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="freezeReason">Reason for Freezing</Label>
+              <Textarea
+                id="freezeReason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Enter reason for freezing wallet..."
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDialog}>Cancel</Button>
+            <Button variant="destructive" onClick={handleFreezeWallet} disabled={!reason}>
+              <Lock className="mr-2 h-4 w-4" />
+              Freeze Wallet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Unfreeze Wallet Dialog */}
+      <Dialog open={dialogType === 'unfreeze'} onOpenChange={closeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Unfreeze Wallet</DialogTitle>
+            <DialogDescription>
+              User ID: {selectedBalance?.userId}
+            </DialogDescription>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to unfreeze this wallet? The user will be able to make transactions again.
+          </p>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDialog}>Cancel</Button>
+            <Button onClick={handleUnfreezeWallet}>
+              <Unlock className="mr-2 h-4 w-4" />
+              Unfreeze Wallet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Adjust Credits Dialog */}
+      <Dialog open={dialogType === 'adjust'} onOpenChange={closeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adjust Credits (GOD Only)</DialogTitle>
+            <DialogDescription>
+              User ID: {selectedBalance?.userId}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="adjustAmount">Amount (use negative for deduction)</Label>
+              <Input
+                id="adjustAmount"
+                type="number"
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="e.g., 100 or -50"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="adjustReason">Reason</Label>
+              <Textarea
+                id="adjustReason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Enter reason for adjustment..."
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDialog}>Cancel</Button>
+            <Button onClick={handleAdjustCredits} disabled={!amount || !reason}>
+              <DollarSign className="mr-2 h-4 w-4" />
+              Adjust Credits
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Grant Bonus Credits Dialog */}
+      <Dialog open={dialogType === 'grant'} onOpenChange={closeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Grant Bonus Credits (GOD Only)</DialogTitle>
+            <DialogDescription>
+              User ID: {selectedBalance?.userId}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="grantAmount">Amount</Label>
+              <Input
+                id="grantAmount"
+                type="number"
+                step="0.01"
+                min="0"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="e.g., 100"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="grantReason">Reason</Label>
+              <Textarea
+                id="grantReason"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Enter reason for bonus grant..."
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeDialog}>Cancel</Button>
+            <Button onClick={handleGrantCredits} disabled={!amount || !reason}>
+              <Gift className="mr-2 h-4 w-4" />
+              Grant Bonus
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
