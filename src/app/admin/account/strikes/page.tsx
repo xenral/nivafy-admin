@@ -6,6 +6,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { accountService } from '@/lib/services';
 import { Strike, StrikeSeverity, StrikeReason } from '@/types/nivafy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,11 +48,13 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Search, AlertTriangle, Trash2, Plus } from 'lucide-react';
+import { Search, AlertTriangle, Trash2, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 export default function StrikesPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [strikes, setStrikes] = useState<Strike[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -68,8 +71,16 @@ export default function StrikesPage() {
   });
 
   useEffect(() => {
+    // Read userId from URL params
+    const userId = searchParams.get('userId');
+    if (userId) {
+      setUserIdFilter(userId);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     loadStrikes();
-  }, [page, statusFilter]);
+  }, [page, statusFilter, userIdFilter]);
 
   const loadStrikes = async () => {
     setLoading(true);
@@ -144,6 +155,11 @@ export default function StrikesPage() {
     return <Badge className={colors[severity]}>{severity}</Badge>;
   };
 
+  const clearUserIdFilter = () => {
+    setUserIdFilter('');
+    router.push('/admin/account/strikes');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -156,6 +172,23 @@ export default function StrikesPage() {
           Issue Strike
         </Button>
       </div>
+
+      {/* Active Filter Indicators */}
+      {userIdFilter && (
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="gap-2">
+            User ID: {userIdFilter}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-4 w-4 p-0 hover:bg-transparent"
+              onClick={clearUserIdFilter}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </Badge>
+        </div>
+      )}
 
       <Card>
         <CardHeader>

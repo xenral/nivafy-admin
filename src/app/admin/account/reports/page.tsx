@@ -6,6 +6,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { accountService } from '@/lib/services';
 import { Report, ReportStatus, ReportType } from '@/types/nivafy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,25 +37,36 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCircle, XCircle, Eye } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 export default function ReportsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState<ReportStatus | ''>('');
   const [typeFilter, setTypeFilter] = useState<ReportType | ''>('');
+  const [userIdFilter, setUserIdFilter] = useState('');
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [reviewDialog, setReviewDialog] = useState(false);
   const [reviewAction, setReviewAction] = useState<'approve' | 'dismiss'>('approve');
   const [reviewNotes, setReviewNotes] = useState('');
 
   useEffect(() => {
+    // Read userId from URL params
+    const userId = searchParams.get('userId');
+    if (userId) {
+      setUserIdFilter(userId);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     loadReports();
-  }, [page, statusFilter, typeFilter]);
+  }, [page, statusFilter, typeFilter, userIdFilter]);
 
   const loadReports = async () => {
     setLoading(true);
@@ -64,6 +76,7 @@ export default function ReportsPage() {
         limit: 20,
         status: statusFilter || undefined,
         type: typeFilter || undefined,
+        userId: userIdFilter ? parseInt(userIdFilter) : undefined,
       };
       const response = await accountService.getReports(params);
       setReports(response.data);
@@ -142,12 +155,34 @@ export default function ReportsPage() {
     return <Badge className={colors[type]}>{type.replace(/_/g, ' ')}</Badge>;
   };
 
+  const clearUserIdFilter = () => {
+    setUserIdFilter('');
+    router.push('/admin/account/reports');
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Reports</h2>
         <p className="text-muted-foreground">Review and manage user reports</p>
       </div>
+
+      {/* Active Filter Indicators */}
+      {userIdFilter && (
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="gap-2">
+            User ID: {userIdFilter}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-4 w-4 p-0 hover:bg-transparent"
+              onClick={clearUserIdFilter}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </Badge>
+        </div>
+      )}
 
       <Card>
         <CardHeader>

@@ -6,6 +6,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { walletService } from '@/lib/services';
 import { Transaction, TransactionStatus, TransactionType } from '@/types/services/wallet.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,23 +37,34 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 export default function TransactionsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [typeFilter, setTypeFilter] = useState<TransactionType | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<TransactionStatus | 'all'>('all');
+  const [userIdFilter, setUserIdFilter] = useState('');
   const [refundDialog, setRefundDialog] = useState<Transaction | null>(null);
   const [refundReason, setRefundReason] = useState('');
 
   useEffect(() => {
+    // Read userId from URL params
+    const userId = searchParams.get('userId');
+    if (userId) {
+      setUserIdFilter(userId);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     loadTransactions();
-  }, [page, typeFilter, statusFilter]);
+  }, [page, typeFilter, statusFilter, userIdFilter]);
 
   const loadTransactions = async () => {
     setLoading(true);
@@ -62,6 +74,7 @@ export default function TransactionsPage() {
         limit: 20,
         type: typeFilter !== 'all' ? typeFilter : undefined,
         status: statusFilter !== 'all' ? statusFilter : undefined,
+        userId: userIdFilter ? parseInt(userIdFilter) : undefined,
       };
       const response = await walletService.getTransactions(params);
       setTransactions(response.data);
@@ -120,12 +133,34 @@ export default function TransactionsPage() {
     return <Badge className={colors[type]}>{labels[type]}</Badge>;
   };
 
+  const clearUserIdFilter = () => {
+    setUserIdFilter('');
+    router.push('/admin/wallet/transactions');
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Transactions</h2>
         <p className="text-muted-foreground">View and manage wallet transactions</p>
       </div>
+
+      {/* Active Filter Indicators */}
+      {userIdFilter && (
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="gap-2">
+            User ID: {userIdFilter}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-4 w-4 p-0 hover:bg-transparent"
+              onClick={clearUserIdFilter}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </Badge>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -166,9 +201,10 @@ export default function TransactionsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>ID</TableHead>
+                  <TableHead>User ID</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Amount</TableHead>
-                  <TableHead>Description</TableHead>
+                  <TableHead>Order ID</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -193,11 +229,12 @@ export default function TransactionsPage() {
                       <TableCell className="font-mono text-xs">
                         {transaction.id}
                       </TableCell>
+                      <TableCell className="font-medium">{transaction.userId}</TableCell>
                       <TableCell>{getTypeBadge(transaction.type)}</TableCell>
                       <TableCell className="font-medium">
                         {transaction.asset?.symbol || ''} {parseFloat(transaction.amount).toFixed(2)}
                       </TableCell>
-                      <TableCell className="max-w-xs truncate">{transaction.orderId}</TableCell>
+                      <TableCell className="max-w-xs truncate font-mono text-xs">{transaction.orderId}</TableCell>
                       <TableCell>{getStatusBadge(transaction.status)}</TableCell>
                       <TableCell>{format(new Date(transaction.createdAt), 'MMM d, yyyy HH:mm')}</TableCell>
                       <TableCell className="text-right">

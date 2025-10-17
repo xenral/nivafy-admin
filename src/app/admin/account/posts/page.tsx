@@ -6,6 +6,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { accountService } from '@/lib/services';
 import { Post } from '@/types/nivafy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,12 +31,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Search, Trash2, RotateCcw, ExternalLink, Image as ImageIcon, Video } from 'lucide-react';
+import { Search, Trash2, RotateCcw, ExternalLink, Image as ImageIcon, Video, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import Image from 'next/image';
 
 export default function PostsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -43,12 +46,21 @@ export default function PostsPage() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'POST' | 'REEL'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'deleted'>('all');
+  const [userIdFilter, setUserIdFilter] = useState('');
   const [deleteDialog, setDeleteDialog] = useState<number | null>(null);
   const [restoreDialog, setRestoreDialog] = useState<number | null>(null);
 
   useEffect(() => {
+    // Read userId from URL params
+    const userId = searchParams.get('userId');
+    if (userId) {
+      setUserIdFilter(userId);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     loadPosts();
-  }, [page, typeFilter, statusFilter]);
+  }, [page, typeFilter, statusFilter, userIdFilter]);
 
   const loadPosts = async () => {
     setLoading(true);
@@ -58,6 +70,7 @@ export default function PostsPage() {
         limit: 20,
         search: search || undefined,
         type: typeFilter !== 'all' ? typeFilter : undefined,
+        userId: userIdFilter ? parseInt(userIdFilter) : undefined,
         isDeleted: statusFilter === 'deleted' ? true : statusFilter === 'active' ? false : undefined,
       };
 
@@ -111,12 +124,34 @@ export default function PostsPage() {
     return null;
   };
 
+  const clearUserIdFilter = () => {
+    setUserIdFilter('');
+    router.push('/admin/account/posts');
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Posts</h2>
-        <p className="text-muted-foreground">Manage and moderate user posts with media preview</p>
+        <p className="text-muted-foreground">Manage and moderate posts</p>
       </div>
+
+      {/* Active Filter Indicators */}
+      {userIdFilter && (
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="gap-2">
+            User ID: {userIdFilter}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-4 w-4 p-0 hover:bg-transparent"
+              onClick={clearUserIdFilter}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </Badge>
+        </div>
+      )}
 
       <Card>
         <CardHeader>

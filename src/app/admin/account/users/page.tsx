@@ -6,6 +6,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { accountService } from '@/lib/services';
 import { User, UserRole, UserStatus } from '@/types/nivafy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -60,7 +61,10 @@ import {
   AlertTriangle,
   Info,
   Users,
-  FileText
+  FileText,
+  Wallet,
+  MessageSquare,
+  Flag
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth.store';
@@ -491,6 +495,52 @@ export default function UsersPage() {
                             <DropdownMenuItem onClick={() => handleViewDetails(user.id)}>
                               <Info className="mr-2 h-4 w-4" />
                               View Details
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel>View User Activity</DropdownMenuLabel>
+
+                            {/* Deep Links */}
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/wallet/transactions?userId=${user.id}`}>
+                                <Wallet className="mr-2 h-4 w-4" />
+                                Transactions
+                              </Link>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/account/posts?userId=${user.id}`}>
+                                <FileText className="mr-2 h-4 w-4" />
+                                Posts
+                              </Link>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/account/comments?userId=${user.id}`}>
+                                <MessageSquare className="mr-2 h-4 w-4" />
+                                Comments
+                              </Link>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/account/reports?userId=${user.id}`}>
+                                <Flag className="mr-2 h-4 w-4" />
+                                Reports
+                              </Link>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/account/strikes?userId=${user.id}`}>
+                                <AlertTriangle className="mr-2 h-4 w-4" />
+                                Strikes
+                              </Link>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/chat/messages?userId=${user.id}`}>
+                                <MessageSquare className="mr-2 h-4 w-4" />
+                                Chat Messages
+                              </Link>
                             </DropdownMenuItem>
 
                             <DropdownMenuSeparator />

@@ -6,6 +6,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { accountService } from '@/lib/services';
 import { Comment } from '@/types/nivafy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,11 +38,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Trash2, RotateCcw, Eye, ExternalLink } from 'lucide-react';
+import { Search, Trash2, RotateCcw, Eye, ExternalLink, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 export default function CommentsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -49,12 +52,21 @@ export default function CommentsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'deleted'>('all');
   const [postIdFilter, setPostIdFilter] = useState('');
+  const [userIdFilter, setUserIdFilter] = useState('');
   const [deleteDialog, setDeleteDialog] = useState<number | null>(null);
   const [restoreDialog, setRestoreDialog] = useState<number | null>(null);
 
   useEffect(() => {
+    // Read userId from URL params
+    const userId = searchParams.get('userId');
+    if (userId) {
+      setUserIdFilter(userId);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     loadComments();
-  }, [page, statusFilter]);
+  }, [page, statusFilter, userIdFilter]);
 
   const loadComments = async () => {
     setLoading(true);
@@ -64,6 +76,7 @@ export default function CommentsPage() {
         limit: 20,
         search: search || undefined,
         postId: postIdFilter ? parseInt(postIdFilter) : undefined,
+        userId: userIdFilter ? parseInt(userIdFilter) : undefined,
         isDeleted: statusFilter === 'deleted' ? true : statusFilter === 'active' ? false : undefined,
       };
 
@@ -105,12 +118,34 @@ export default function CommentsPage() {
     loadComments();
   };
 
+  const clearUserIdFilter = () => {
+    setUserIdFilter('');
+    router.push('/admin/account/comments');
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Comments</h2>
         <p className="text-muted-foreground">Manage and moderate user comments</p>
       </div>
+
+      {/* Active Filter Indicators */}
+      {userIdFilter && (
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="gap-2">
+            User ID: {userIdFilter}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-4 w-4 p-0 hover:bg-transparent"
+              onClick={clearUserIdFilter}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </Badge>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
