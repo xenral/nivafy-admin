@@ -166,15 +166,16 @@ export function Sidebar({
             >
               <div className=" flex h-8 w-8 items-center justify-center rounded-lg">
                 <Image
-                  src="/logo.svg"
-                  alt="LitePanel"
+                  src="/logo.png"
+                  alt="Nivafy"
                   width={33}
                   height={33}
+                  priority
                   className={isDark ? 'invert filter' : ''}
                 />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold">LitePanel</span>
+                <span className="text-sm font-semibold">Nivafy</span>
                 <span className="text-muted-foreground text-xs">Admin</span>
               </div>
             </motion.div>
@@ -188,10 +189,11 @@ export function Sidebar({
               className=" flex h-8 w-8 items-center justify-center rounded-lg"
             >
               <Image
-                src="/logo.svg"
-                alt="LitePanel"
+                src="/logo.png"
+                alt="Nivafy"
                 width={33}
                 height={33}
+                priority
                 className={isDark ? 'invert filter' : ''}
               />
             </motion.div>
@@ -497,7 +499,7 @@ export function Sidebar({
               transition={{ duration: 0.2 }}
               className="text-muted-foreground text-center text-xs"
             >
-              <div className="mb-1">LitePanel</div>
+              <div className="mb-1">Nivafy</div>
               <div className="text-[10px]">v0.1.0</div>
             </motion.div>
           )}

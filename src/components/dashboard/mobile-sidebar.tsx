@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, Palette } from 'lucide-react';
+import Image from 'next/image';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useThemeContext } from '@/context/theme-context';
@@ -92,11 +93,11 @@ export function MobileSidebar({
           <SheetHeader className="border-b p-4">
             <div className="flex items-center space-x-2">
               <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
-                <Palette className="text-primary-foreground h-5 w-5" />
+                <Image src="/logo.png" alt="Nivafy" width={24} height={24} priority />
               </div>
               <div className="flex flex-col">
                 <SheetTitle className="text-left text-sm font-semibold">
-                  LitePanel
+                  Nivafy
                 </SheetTitle>
                 <span className="text-muted-foreground text-xs">Admin</span>
               </div>
