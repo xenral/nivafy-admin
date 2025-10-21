@@ -13,16 +13,19 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       <div className="container relative min-h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0">
         {/* Left side - Branding/Image */}
         <div className="relative hidden h-full flex-col overflow-hidden px-10 pb-10 pt-14 text-white lg:flex dark:border-r">
+          <div 
+          className="absolute inset-0 z-10 bg-black/20 "
+          />
           <div className="absolute inset-0">
             <div className="absolute inset-0 bg-gradient-to-br from-[#0f172a] via-[#111827] to-[#020617]" />
-            <div className="absolute -left-24 top-24 h-72 w-72 rounded-full bg-primary/40 blur-3xl" />
-            <div className="absolute bottom-10 right-[-6rem] h-80 w-80 rounded-full bg-pink-500/30 blur-[120px]" />
+            <div className="absolute -left-28 top-24 h-72 w-72 rounded-full bg-primary/20 blur-[200px]" />
+            <div className="absolute bottom-10 right-[-6rem] h-80 w-80 rounded-full bg-blue-500/20 blur-[200px]" />
             <div className="absolute inset-10 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-lg" />
           </div>
           <div className="relative z-20 flex flex-1 flex-col justify-between rounded-2xl border border-white/10 bg-slate-950/50 px-10 pb-12 pt-12 backdrop-blur">
             <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/10 p-3 shadow-lg backdrop-blur">
-                <Image src="/logo.png" alt="Nivafy" width={40} height={40} priority />
+              <div className="flex h-22 w-38 items-center justify-center rounded-2xl border border-white/10 bg-white/10 p-3 shadow-lg backdrop-blur">
+                <Image src="/logo.png" alt="Nivafy" width={100} height={100} priority />
               </div>
             </div>
             <div className="space-y-6">
