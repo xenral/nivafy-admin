@@ -90,7 +90,7 @@ export default function TransactionsPage() {
     if (!refundDialog) return;
 
     try {
-      await walletService.refundTransaction(refundDialog.id, { reason: refundReason });
+      await walletService.refundTransaction(String(refundDialog.id), { reason: refundReason });
       toast.success('Transaction refunded successfully');
       setRefundDialog(null);
       setRefundReason('');
@@ -288,7 +288,7 @@ export default function TransactionsPage() {
           <DialogHeader>
             <DialogTitle>Refund Transaction</DialogTitle>
             <DialogDescription>
-              Transaction ID: {refundDialog?.id.slice(0, 16)}...
+              Transaction ID: {String(refundDialog?.id).slice(0, 16)}...
             </DialogDescription>
           </DialogHeader>
           

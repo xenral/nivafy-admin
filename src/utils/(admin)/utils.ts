@@ -1,10 +1,6 @@
 // utils.ts
-import {
-  UserType,
-  ResponsePostType,
-  roleIcons,
-  badgeStatusColorMap,
-} from '@/data/(admin)/data';
+import { roleIcons, badgeStatusColorMap } from '@/data/(admin)/data';
+import { UserType, ResponsePostType } from '@/types/(admin)/types';
 import { LucideIcon, CheckCircle2, Clock, Shield, User } from 'lucide-react';
 
 // User Utilities

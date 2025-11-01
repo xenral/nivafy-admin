@@ -132,13 +132,13 @@ export const authUtils = {
    */
   getUserDisplayName: () => {
     const { user } = useAuthStore.getState();
-    return user?.name || user?.email || 'User';
+    return user?.displayName || user?.username || 'User';
   },
 
   /**
    * Update user profile data
    */
-  updateProfile: (updates: { name?: string; avatar?: string }) => {
+  updateProfile: (updates: { displayName?: string; avatar?: string }) => {
     const { user, setUser } = useAuthStore.getState();
     if (user) {
       setUser({ ...user, ...updates });
@@ -196,7 +196,7 @@ export const storeUtils = {
       auth: {
         isAuthenticated: authState.isAuthenticated,
         hasUser: !!authState.user,
-        userEmail: authState.user?.email,
+        userEmail: authState.user?.username,
       },
     };
   },

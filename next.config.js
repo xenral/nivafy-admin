@@ -12,6 +12,7 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: false,
   },
+  output: 'standalone',
   // Enable experimental features for better performance
   experimental: {
     optimizePackageImports: ['@radix-ui/react-icons'],

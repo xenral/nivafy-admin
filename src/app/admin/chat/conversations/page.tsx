@@ -39,7 +39,7 @@ export default function ChatConversationsPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [deleteDialog, setDeleteDialog] = useState<string | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<string | number | null>(null);
 
   useEffect(() => {
     loadConversations();
@@ -58,9 +58,9 @@ export default function ChatConversationsPage() {
     }
   };
 
-  const handleDelete = async (conversationId: string) => {
+  const handleDelete = async (conversationId: string | number) => {
     try {
-      await chatService.deleteConversation(conversationId);
+      await chatService.deleteConversation(String(conversationId));
       toast.success('Conversation deleted successfully');
       loadConversations();
     } catch (error: any) {

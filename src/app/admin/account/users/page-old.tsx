@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from 'react';
 import { accountService } from '@/lib/services';
-import { User, UserRole, } from '@/types/nivafy';
+import { User, UserRole, UserStatus } from '@/types/nivafy';
 import { PaginationParams } from '@/types/nivafy';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -163,8 +163,14 @@ export default function UsersPage() {
   };
 
   const getStatusBadge = (user: User) => {
-    if (user.isBanned) return <Badge variant="destructive">Banned</Badge>;
-    if (user.isSuspended) return <Badge variant="outline">Suspended</Badge>;
+    if (user.status === UserStatus.BANNED || user.bannedAt) {
+      return <Badge variant="destructive">Banned</Badge>;
+    }
+
+    if (user.status === UserStatus.SUSPENDED || user.suspendedUntil) {
+      return <Badge variant="outline">Suspended</Badge>;
+    }
+
     if (user.isShadowBanned) return <Badge variant="secondary">Shadow Banned</Badge>;
     return <Badge variant="default" className="bg-green-500">Active</Badge>;
   };
@@ -267,7 +273,7 @@ export default function UsersPage() {
                             
                             <DropdownMenuSeparator />
                             
-                            {user.isBanned ? (
+                            {user.status === UserStatus.BANNED || user.bannedAt ? (
                               <DropdownMenuItem onClick={() => handleAction(user, 'unban')}>
                                 <UserCheck className="mr-2 h-4 w-4" />
                                 Unban User
@@ -279,7 +285,7 @@ export default function UsersPage() {
                               </DropdownMenuItem>
                             )}
                             
-                            {user.isSuspended ? (
+                            {user.status === UserStatus.SUSPENDED || user.suspendedUntil ? (
                               <DropdownMenuItem onClick={() => handleAction(user, 'unsuspend')}>
                                 <UserCheck className="mr-2 h-4 w-4" />
                                 Remove Suspension

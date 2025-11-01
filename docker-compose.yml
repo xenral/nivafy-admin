@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  admin-panel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nivafy-admin:latest
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_ACCOUNT_API_URL: "https://api.nivafy.com/account"
+      NEXT_PUBLIC_CHAT_API_URL: "https://api.nivafy.com/chat"
+      NEXT_PUBLIC_FILE_API_URL: "https://api.nivafy.com/file"
+      NEXT_PUBLIC_NOTIFICATION_API_URL: "https://api.nivafy.com/notification"
+      NEXT_PUBLIC_SEARCH_API_URL: "https://api.nivafy.com/search"
+      NEXT_PUBLIC_WALLET_API_URL: "https://api.nivafy.com/wallet"
+    restart: unless-stopped

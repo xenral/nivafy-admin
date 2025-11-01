@@ -353,6 +353,34 @@ npm start
 pm2 start npm --name "litepanel" -- start
 ```
 
+### **Docker Deployment**
+
+```bash
+# Build the Docker image
+docker build -t nivafy-admin .
+
+# Run the container (adjust port and env file as needed)
+docker run --env-file .env.production.local -p 3000:3000 nivafy-admin
+```
+
+- The image uses a multi-stage build and Next.js standalone output for a slim runtime.
+- Provide any production environment variables via `--env-file` or `-e` flags before running.
+
+### **Docker Compose**
+
+```bash
+# Build (if needed) and start the stack
+docker compose up -d --build
+
+# View logs
+docker compose logs -f
+
+# Stop the containers
+docker compose down
+```
+
+- Override `.env.production.local` or supply an alternate `env_file` in `docker-compose.yml` to suit your environment.
+
 ---
 
 ## 📈 Performance
