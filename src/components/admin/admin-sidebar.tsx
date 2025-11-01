@@ -102,13 +102,13 @@ const navigation: NavItem[] = [
     title: 'Media',
     href: '/admin/files',
     icon: Image,
-    disabled: true,
+    disabled: false,
     badge: 'Coming Soon',
     children: [
-      { title: 'Files', href: '/admin/files/files', icon: FileText, disabled: true },
-      { title: 'AI Generations', href: '/admin/files/ai-generations', icon: Zap, disabled: true },
-      { title: 'Blocked Users', href: '/admin/files/blocked', icon: Shield, disabled: true },
-      { title: 'Statistics', href: '/admin/files/stats', icon: TrendingUp, disabled: true },
+      { title: 'Files', href: '/admin/files/files', icon: FileText, disabled: false },
+      { title: 'AI Generations', href: '/admin/files/ai-generations', icon: Zap, disabled: false },
+      { title: 'Blocked Users', href: '/admin/files/blocked', icon: Shield, disabled: false },
+      { title: 'Statistics', href: '/admin/files/stats', icon: TrendingUp, disabled: false },
     ],
   },
   {
