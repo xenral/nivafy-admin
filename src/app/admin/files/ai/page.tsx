@@ -494,7 +494,7 @@ export default function AIManagementPage() {
               </div>
               <Button onClick={() => {
                 setEditingSuggestion(null);
-                setSuggestionForm({ text: '', order: 0 });
+                setSuggestionForm({ text: '', order: 0, modelId: undefined });
                 setSuggestionDialogOpen(true);
               }}>
                 <Plus className="h-4 w-4 mr-2" />
