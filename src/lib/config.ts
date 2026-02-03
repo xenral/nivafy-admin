@@ -11,7 +11,7 @@ export const config = {
   api: {
     account: process.env.NEXT_PUBLIC_ACCOUNT_API_URL || 'http://localhost:3001',
     chat: process.env.NEXT_PUBLIC_CHAT_API_URL || 'http://localhost:3001',
-    file: process.env.NEXT_PUBLIC_FILE_API_URL || 'http://localhost:3002',
+    file: process.env.NEXT_PUBLIC_FILE_API_URL || 'http://localhost:3006',
     notification: process.env.NEXT_PUBLIC_NOTIFICATION_API_URL || 'http://localhost:3003',
     search: process.env.NEXT_PUBLIC_SEARCH_API_URL || 'http://localhost:3004',
     wallet: process.env.NEXT_PUBLIC_WALLET_API_URL || 'http://localhost:3005',

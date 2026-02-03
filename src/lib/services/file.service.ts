@@ -98,10 +98,13 @@ export const fileService = {
   getAiSuggestions: () =>
     api.get(SERVICE, '/admin/files/ai/suggestions'),
 
-  createAiSuggestion: (data: { text: string; order: number }) =>
+  createAiSuggestion: (data: { text: string; order: number; modelId?: number }) =>
     api.post(SERVICE, '/admin/files/ai/suggestions', data),
 
-  updateAiSuggestion: (suggestionId: string, data: Partial<{ text: string; order: number }>) =>
+  updateAiSuggestion: (
+    suggestionId: string,
+    data: Partial<{ text: string; order: number; modelId?: number }>,
+  ) =>
     api.put(SERVICE, `/admin/files/ai/suggestions/${suggestionId}`, data),
 
   deleteAiSuggestion: (suggestionId: string) =>

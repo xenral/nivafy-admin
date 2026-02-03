@@ -29,6 +29,13 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search, Trash2, Plus, Edit, Zap, MessageSquare, Brain, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
@@ -105,14 +112,24 @@ export default function AIManagementPage() {
   const [suggestionForm, setSuggestionForm] = useState({
     text: '',
     order: 0,
+    modelId: undefined as number | undefined,
   });
 
   useEffect(() => {
     if (activeTab === 'images') loadAiImages();
     if (activeTab === 'conversations') loadConversations();
     if (activeTab === 'models') loadModels();
-    if (activeTab === 'suggestions') loadSuggestions();
+    if (activeTab === 'suggestions') {
+      loadSuggestions();
+      loadModels({ silent: true });
+    }
   }, [activeTab, imagesPage, conversationsPage]);
+
+  useEffect(() => {
+    if (suggestionDialogOpen && models.length === 0) {
+      loadModels({ silent: true });
+    }
+  }, [suggestionDialogOpen, models.length]);
 
   const loadAiImages = async () => {
     setLoading(true);
@@ -147,15 +164,19 @@ export default function AIManagementPage() {
     }
   };
 
-  const loadModels = async () => {
-    setLoading(true);
+  const loadModels = async (options?: { silent?: boolean }) => {
+    if (!options?.silent) {
+      setLoading(true);
+    }
     try {
       const data = await fileService.getAiModels();
       setModels(data);
     } catch (error) {
       toast.error('Failed to load AI models');
     } finally {
-      setLoading(false);
+      if (!options?.silent) {
+        setLoading(false);
+      }
     }
   };
 
@@ -220,7 +241,7 @@ export default function AIManagementPage() {
       toast.success(`Suggestion ${editingSuggestion ? 'updated' : 'created'} successfully`);
       setSuggestionDialogOpen(false);
       setEditingSuggestion(null);
-      setSuggestionForm({ text: '', order: 0 });
+      setSuggestionForm({ text: '', order: 0, modelId: undefined });
       loadSuggestions();
     } catch (error) {
       toast.error('Failed to save suggestion');
@@ -492,6 +513,7 @@ export default function AIManagementPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Text</TableHead>
+                      <TableHead>Model</TableHead>
                       <TableHead>Order</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -500,6 +522,11 @@ export default function AIManagementPage() {
                     {suggestions.map((suggestion) => (
                       <TableRow key={suggestion._id}>
                         <TableCell>{suggestion.text}</TableCell>
+                        <TableCell>
+                          {models.find((m) => m._id === String(suggestion.modelId))
+                            ? models.find((m) => m._id === String(suggestion.modelId))?.title
+                            : suggestion.modelId ?? '—'}
+                        </TableCell>
                         <TableCell>{suggestion.order}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-2 justify-end">
@@ -511,6 +538,7 @@ export default function AIManagementPage() {
                                 setSuggestionForm({
                                   text: suggestion.text,
                                   order: suggestion.order,
+                                  modelId: suggestion.modelId,
                                 });
                                 setSuggestionDialogOpen(true);
                               }}
@@ -627,6 +655,30 @@ export default function AIManagementPage() {
                 placeholder="Enter suggestion text"
                 rows={3}
               />
+            </div>
+            <div>
+              <Label htmlFor="model">Model</Label>
+              <Select
+                value={suggestionForm.modelId ? String(suggestionForm.modelId) : ''}
+                onValueChange={(value) =>
+                  setSuggestionForm({
+                    ...suggestionForm,
+                    modelId: value ? Number(value) : undefined,
+                  })
+                }
+              >
+                <SelectTrigger id="model">
+                  <SelectValue placeholder="Select a model (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No model</SelectItem>
+                  {models.map((model) => (
+                    <SelectItem key={model._id} value={String(model._id)}>
+                      {model.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="order">Display Order</Label>
