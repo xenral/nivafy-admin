@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { fileService } from '@/lib/services';
 
 interface FileStats {
   images: {
@@ -56,10 +57,7 @@ export default function FilesDashboardPage() {
   const loadStats = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/files/stats');
-      if (!response.ok) throw new Error('Failed to load stats');
-      
-      const data = await response.json();
+      const data = await fileService.getStats();
       setStats(data);
     } catch (error) {
       toast.error('Failed to load statistics');

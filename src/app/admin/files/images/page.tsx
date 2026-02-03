@@ -38,6 +38,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search, Trash2, RotateCcw, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { fileService } from '@/lib/services';
 
 interface ImageMetadata {
   _id: string;
@@ -79,17 +80,12 @@ export default function ImagesPage() {
   const loadImages = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '20',
-        includeDeleted: includeDeleted.toString(),
+      const data: PaginatedResponse = await fileService.getImages({
+        page,
+        limit: 20,
+        includeDeleted,
+        ...(search && { search }),
       });
-      if (search) params.append('search', search);
-
-      const response = await fetch(`/api/admin/files/images?${params}`);
-      if (!response.ok) throw new Error('Failed to load images');
-      
-      const data: PaginatedResponse = await response.json();
       setImages(data.data);
       setTotalPages(data.pagination.totalPages);
     } catch (error) {
@@ -106,11 +102,7 @@ export default function ImagesPage() {
 
   const handleSoftDelete = async (imageId: string) => {
     try {
-      const response = await fetch(`/api/admin/files/images/${imageId}/soft`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete image');
-      
+      await fileService.softDeleteImage(imageId);
       toast.success('Image soft-deleted successfully');
       loadImages();
     } catch (error) {
@@ -120,11 +112,7 @@ export default function ImagesPage() {
 
   const handleRestore = async (imageId: string) => {
     try {
-      const response = await fetch(`/api/admin/files/images/${imageId}/restore`, {
-        method: 'POST',
-      });
-      if (!response.ok) throw new Error('Failed to restore image');
-      
+      await fileService.restoreImage(imageId);
       toast.success('Image restored successfully');
       loadImages();
     } catch (error) {
@@ -136,11 +124,7 @@ export default function ImagesPage() {
     if (!selectedImage) return;
     
     try {
-      const response = await fetch(`/api/admin/files/images/${selectedImage._id}/hard`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to permanently delete image');
-      
+      await fileService.hardDeleteImage(selectedImage._id);
       toast.success('Image permanently deleted');
       setDeleteDialogOpen(false);
       setSelectedImage(null);

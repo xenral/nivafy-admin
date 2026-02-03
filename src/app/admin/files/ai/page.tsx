@@ -32,6 +32,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Search, Trash2, Plus, Edit, Zap, MessageSquare, Brain, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { fileService } from '@/lib/services';
 
 interface AiImage {
   _id: string;
@@ -116,16 +117,11 @@ export default function AIManagementPage() {
   const loadAiImages = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: imagesPage.toString(),
-        limit: '20',
+      const data = await fileService.getAiImages({
+        page: imagesPage,
+        limit: 20,
+        ...(imageSearch && { prompt: imageSearch }),
       });
-      if (imageSearch) params.append('prompt', imageSearch);
-
-      const response = await fetch(`/api/admin/files/ai/images?${params}`);
-      if (!response.ok) throw new Error('Failed to load AI images');
-      
-      const data = await response.json();
       setAiImages(data.data);
       setImagesTotalPages(data.pagination.totalPages);
     } catch (error) {
@@ -138,15 +134,10 @@ export default function AIManagementPage() {
   const loadConversations = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: conversationsPage.toString(),
-        limit: '20',
+      const data = await fileService.getAiConversations({
+        page: conversationsPage,
+        limit: 20,
       });
-
-      const response = await fetch(`/api/admin/files/ai/conversations?${params}`);
-      if (!response.ok) throw new Error('Failed to load conversations');
-      
-      const data = await response.json();
       setConversations(data.data);
       setConversationsTotalPages(data.pagination.totalPages);
     } catch (error) {
@@ -159,10 +150,7 @@ export default function AIManagementPage() {
   const loadModels = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/files/ai/models');
-      if (!response.ok) throw new Error('Failed to load models');
-      
-      const data = await response.json();
+      const data = await fileService.getAiModels();
       setModels(data);
     } catch (error) {
       toast.error('Failed to load AI models');
@@ -174,10 +162,7 @@ export default function AIManagementPage() {
   const loadSuggestions = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/files/ai/suggestions');
-      if (!response.ok) throw new Error('Failed to load suggestions');
-      
-      const data = await response.json();
+      const data = await fileService.getAiSuggestions();
       setSuggestions(data);
     } catch (error) {
       toast.error('Failed to load suggestions');
@@ -188,11 +173,7 @@ export default function AIManagementPage() {
 
   const deleteAiImage = async (id: string) => {
     try {
-      const response = await fetch(`/api/admin/files/ai/images/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete AI image');
-      
+      await fileService.deleteAiImage(id);
       toast.success('AI image deleted');
       loadAiImages();
     } catch (error) {
@@ -202,11 +183,7 @@ export default function AIManagementPage() {
 
   const deleteConversation = async (id: string) => {
     try {
-      const response = await fetch(`/api/admin/files/ai/conversations/${id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete conversation');
-      
+      await fileService.deleteAiConversation(id);
       toast.success('Conversation deleted');
       loadConversations();
     } catch (error) {
@@ -216,17 +193,11 @@ export default function AIManagementPage() {
 
   const handleSaveModel = async () => {
     try {
-      const url = editingModel
-        ? `/api/admin/files/ai/models/${editingModel._id}`
-        : '/api/admin/files/ai/models';
-      
-      const response = await fetch(url, {
-        method: editingModel ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(modelForm),
-      });
-      
-      if (!response.ok) throw new Error('Failed to save model');
+      if (editingModel) {
+        await fileService.updateAiModel(editingModel._id, modelForm);
+      } else {
+        await fileService.createAiModel(modelForm);
+      }
       
       toast.success(`Model ${editingModel ? 'updated' : 'created'} successfully`);
       setModelDialogOpen(false);
@@ -240,17 +211,11 @@ export default function AIManagementPage() {
 
   const handleSaveSuggestion = async () => {
     try {
-      const url = editingSuggestion
-        ? `/api/admin/files/ai/suggestions/${editingSuggestion._id}`
-        : '/api/admin/files/ai/suggestions';
-      
-      const response = await fetch(url, {
-        method: editingSuggestion ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(suggestionForm),
-      });
-      
-      if (!response.ok) throw new Error('Failed to save suggestion');
+      if (editingSuggestion) {
+        await fileService.updateAiSuggestion(editingSuggestion._id, suggestionForm);
+      } else {
+        await fileService.createAiSuggestion(suggestionForm);
+      }
       
       toast.success(`Suggestion ${editingSuggestion ? 'updated' : 'created'} successfully`);
       setSuggestionDialogOpen(false);
