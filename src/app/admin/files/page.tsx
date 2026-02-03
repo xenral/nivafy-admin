@@ -58,7 +58,7 @@ export default function FilesDashboardPage() {
     setLoading(true);
     try {
       const data = await fileService.getStats();
-      setStats(data);
+      setStats(data as unknown as FileStats);
     } catch (error) {
       toast.error('Failed to load statistics');
     } finally {
