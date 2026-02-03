@@ -52,10 +52,12 @@ interface AiConversation {
 
 interface AiModel {
   _id: string;
+  purpose: string;
+  model: string;
   title: string;
   description?: string;
   instructions: string;
-  purpose: string;
+  icon?: string;
   createdAt: string;
 }
 
@@ -87,9 +89,12 @@ export default function AIManagementPage() {
   const [modelDialogOpen, setModelDialogOpen] = useState(false);
   const [editingModel, setEditingModel] = useState<AiModel | null>(null);
   const [modelForm, setModelForm] = useState({
+    purpose: '',
+    model: 'gpt-4',
     title: '',
     description: '',
     instructions: '',
+    icon: '',
   });
   
   // AI Suggestions
@@ -226,7 +231,7 @@ export default function AIManagementPage() {
       toast.success(`Model ${editingModel ? 'updated' : 'created'} successfully`);
       setModelDialogOpen(false);
       setEditingModel(null);
-      setModelForm({ title: '', description: '', instructions: '' });
+      setModelForm({ purpose: '', model: 'gpt-4', title: '', description: '', instructions: '', icon: '' });
       loadModels();
     } catch (error) {
       toast.error('Failed to save model');
@@ -439,7 +444,7 @@ export default function AIManagementPage() {
               </div>
               <Button onClick={() => {
                 setEditingModel(null);
-                setModelForm({ title: '', description: '', instructions: '' });
+                setModelForm({ purpose: '', model: 'gpt-4', title: '', description: '', instructions: '', icon: '' });
                 setModelDialogOpen(true);
               }}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -470,9 +475,12 @@ export default function AIManagementPage() {
                               onClick={() => {
                                 setEditingModel(model);
                                 setModelForm({
+                                  purpose: model.purpose,
+                                  model: model.model,
                                   title: model.title,
                                   description: model.description || '',
                                   instructions: model.instructions,
+                                  icon: model.icon || '',
                                 });
                                 setModelDialogOpen(true);
                               }}
@@ -567,12 +575,34 @@ export default function AIManagementPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="purpose">Purpose *</Label>
+              <Input
+                id="purpose"
+                value={modelForm.purpose}
+                onChange={(e) => setModelForm({ ...modelForm, purpose: e.target.value })}
+                placeholder="e.g., general-chat, code-assistant"
+                disabled={!!editingModel}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Unique identifier (cannot be changed after creation)
+              </p>
+            </div>
+            <div>
+              <Label htmlFor="model">OpenAI Model *</Label>
+              <Input
+                id="model"
+                value={modelForm.model}
+                onChange={(e) => setModelForm({ ...modelForm, model: e.target.value })}
+                placeholder="e.g., gpt-4, gpt-3.5-turbo"
+              />
+            </div>
+            <div>
+              <Label htmlFor="title">Title *</Label>
               <Input
                 id="title"
                 value={modelForm.title}
                 onChange={(e) => setModelForm({ ...modelForm, title: e.target.value })}
-                placeholder="Model title"
+                placeholder="Model display title"
               />
             </div>
             <div>
@@ -585,7 +615,16 @@ export default function AIManagementPage() {
               />
             </div>
             <div>
-              <Label htmlFor="instructions">System Instructions</Label>
+              <Label htmlFor="icon">Icon</Label>
+              <Input
+                id="icon"
+                value={modelForm.icon}
+                onChange={(e) => setModelForm({ ...modelForm, icon: e.target.value })}
+                placeholder="Icon identifier or emoji"
+              />
+            </div>
+            <div>
+              <Label htmlFor="instructions">System Instructions *</Label>
               <Textarea
                 id="instructions"
                 value={modelForm.instructions}
