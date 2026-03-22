@@ -66,7 +66,9 @@ import {
   Wallet,
   MessageSquare,
   Flag,
-  Bell
+  Bell,
+  UserPlus,
+  KeyRound
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/auth.store';
@@ -99,6 +101,20 @@ export default function UsersPage() {
   const [detailsUser, setDetailsUser] = useState<User | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
+
+  // Create user dialog
+  const [createDialog, setCreateDialog] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    firstName: '', lastName: '', cellphone: '', email: '',
+    password: '', username: '', birthDate: '', sex: 'male' as const, role: '0',
+  });
+
+  // Change password dialog
+  const [changePasswordDialog, setChangePasswordDialog] = useState(false);
+  const [changePasswordUser, setChangePasswordUser] = useState<User | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [changePasswordLoading, setChangePasswordLoading] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -283,6 +299,54 @@ export default function UsersPage() {
     }
   };
 
+  const handleCreateUser = async () => {
+    if (!createForm.firstName || !createForm.lastName || !createForm.cellphone || !createForm.password || !createForm.username || !createForm.birthDate) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    setCreateLoading(true);
+    try {
+      await accountService.createUser({
+        firstName: createForm.firstName,
+        lastName: createForm.lastName,
+        cellphone: createForm.cellphone,
+        email: createForm.email || undefined,
+        password: createForm.password,
+        username: createForm.username,
+        birthDate: createForm.birthDate,
+        sex: createForm.sex,
+        role: parseInt(createForm.role),
+      });
+      toast.success('User created successfully');
+      setCreateDialog(false);
+      setCreateForm({ firstName: '', lastName: '', cellphone: '', email: '', password: '', username: '', birthDate: '', sex: 'male', role: '0' });
+      await loadUsers();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to create user');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!changePasswordUser || !newPassword) {
+      toast.error('Please enter a new password');
+      return;
+    }
+    setChangePasswordLoading(true);
+    try {
+      await accountService.changeUserPassword(Number(changePasswordUser.id), { newPassword });
+      toast.success('Password changed successfully');
+      setChangePasswordDialog(false);
+      setChangePasswordUser(null);
+      setNewPassword('');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to change password');
+    } finally {
+      setChangePasswordLoading(false);
+    }
+  };
+
   const getRoleBadge = (role: UserRole) => {
     const colors = {
       [UserRole.USER]: 'bg-gray-500',
@@ -343,9 +407,15 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Users</h2>
-        <p className="text-muted-foreground">Manage users with advanced filtering and moderation tools</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Users</h2>
+          <p className="text-muted-foreground">Manage users with advanced filtering and moderation tools</p>
+        </div>
+        <Button onClick={() => setCreateDialog(true)}>
+          <UserPlus className="mr-2 h-4 w-4" />
+          Create User
+        </Button>
       </div>
 
       <Card>
@@ -596,6 +666,16 @@ export default function UsersPage() {
                                 Verify User
                               </DropdownMenuItem>
                             )}
+
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setChangePasswordUser(user);
+                                setChangePasswordDialog(true);
+                              }}
+                            >
+                              <KeyRound className="mr-2 h-4 w-4 text-blue-600" />
+                              Change Password
+                            </DropdownMenuItem>
 
                             <DropdownMenuSeparator />
 
@@ -1175,6 +1255,120 @@ export default function UsersPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDetailsDialog(false)}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create User Dialog */}
+      <Dialog open={createDialog} onOpenChange={(open) => { setCreateDialog(open); if (!open) setCreateForm({ firstName: '', lastName: '', cellphone: '', email: '', password: '', username: '', birthDate: '', sex: 'male', role: '0' }); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+            <DialogDescription>
+              Manually create a user account. No OTP verification required.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label htmlFor="cu-firstName">First Name *</Label>
+                <Input id="cu-firstName" value={createForm.firstName} onChange={(e) => setCreateForm(f => ({ ...f, firstName: e.target.value }))} placeholder="Ali" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="cu-lastName">Last Name *</Label>
+                <Input id="cu-lastName" value={createForm.lastName} onChange={(e) => setCreateForm(f => ({ ...f, lastName: e.target.value }))} placeholder="Fakoor" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="cu-username">Username *</Label>
+              <Input id="cu-username" value={createForm.username} onChange={(e) => setCreateForm(f => ({ ...f, username: e.target.value }))} placeholder="alifakoor" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label htmlFor="cu-cellphone">Phone Number *</Label>
+                <Input id="cu-cellphone" value={createForm.cellphone} onChange={(e) => setCreateForm(f => ({ ...f, cellphone: e.target.value }))} placeholder="+989108869419" />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="cu-email">Email</Label>
+                <Input id="cu-email" type="email" value={createForm.email} onChange={(e) => setCreateForm(f => ({ ...f, email: e.target.value }))} placeholder="ali@example.com" />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="cu-password">Password *</Label>
+              <Input id="cu-password" type="password" value={createForm.password} onChange={(e) => setCreateForm(f => ({ ...f, password: e.target.value }))} placeholder="Min 8 chars, upper/lower/number/symbol" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label htmlFor="cu-birthDate">Birth Date *</Label>
+                <Input id="cu-birthDate" type="date" value={createForm.birthDate} onChange={(e) => setCreateForm(f => ({ ...f, birthDate: e.target.value }))} />
+              </div>
+              <div className="space-y-1">
+                <Label>Sex *</Label>
+                <Select value={createForm.sex} onValueChange={(v: any) => setCreateForm(f => ({ ...f, sex: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="not_said">Prefer not to say</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {hasRole(UserRole.GOD) && (
+              <div className="space-y-1">
+                <Label>Role</Label>
+                <Select value={createForm.role} onValueChange={(v) => setCreateForm(f => ({ ...f, role: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">User</SelectItem>
+                    <SelectItem value="1">Admin</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateDialog(false)} disabled={createLoading}>Cancel</Button>
+            <Button onClick={handleCreateUser} disabled={createLoading}>
+              {createLoading ? 'Creating...' : 'Create User'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Password Dialog */}
+      <Dialog open={changePasswordDialog} onOpenChange={(open) => { setChangePasswordDialog(open); if (!open) { setChangePasswordUser(null); setNewPassword(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Password</DialogTitle>
+            <DialogDescription>
+              Set a new password for <strong>@{changePasswordUser?.username}</strong>. This will invalidate their current sessions.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <Label htmlFor="cp-newPassword">New Password *</Label>
+              <Input
+                id="cp-newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Min 8 chars, upper/lower/number/symbol"
+              />
+            </div>
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950">
+              <p className="text-sm text-blue-900 dark:text-blue-100">
+                <KeyRound className="mr-2 inline h-4 w-4" />
+                The user will need to log in again with the new password.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setChangePasswordDialog(false)} disabled={changePasswordLoading}>Cancel</Button>
+            <Button onClick={handleChangePassword} disabled={changePasswordLoading}>
+              {changePasswordLoading ? 'Changing...' : 'Change Password'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -18,6 +18,22 @@ import {
 
 // ============ DTOs ============
 
+export interface CreateUserDto {
+  firstName: string;
+  lastName: string;
+  cellphone: string;
+  email?: string;
+  password: string;
+  username: string;
+  birthDate: string;
+  sex: 'male' | 'female' | 'not_said' | 'other';
+  role?: number;
+}
+
+export interface ChangeUserPasswordDto {
+  newPassword: string;
+}
+
 export interface UpdateUserDto {
   displayName?: string;
   bio?: string;

@@ -23,6 +23,8 @@ import {
   PostFilters,
   ReportFilters,
   AuditLogFilters,
+  CreateUserDto,
+  ChangeUserPasswordDto,
 } from '@/types/services/account.types';
 import { User, Post, Comment, Report, Strike, PaginationParams } from '@/types/nivafy';
 
@@ -98,11 +100,17 @@ export const accountService = {
 
   // ============ User Management ============
 
+  createUser: (data: CreateUserDto) =>
+    api.post<{ message: string; userId: number }>(SERVICE, '/admin/users', data),
+
   getUsers: (params?: PaginationParams & UserFilters) =>
     api.get<UsersResponse>(SERVICE, '/admin/users', params),
 
   getUserById: (userId: number) =>
     api.get<User>(SERVICE, `/admin/users/${userId}`),
+
+  changeUserPassword: (userId: number, data: ChangeUserPasswordDto) =>
+    api.put<{ message: string }>(SERVICE, `/admin/users/${userId}/password`, data),
 
   updateUser: (userId: number, data: UpdateUserDto) =>
     api.patch<User>(SERVICE, `/admin/users/${userId}`, data),
