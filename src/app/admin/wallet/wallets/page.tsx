@@ -6,6 +6,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { walletService } from '@/lib/services';
 import { Balance } from '@/types/services/wallet.types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,11 +45,12 @@ import { format } from 'date-fns';
 type DialogType = 'freeze' | 'unfreeze' | 'adjust' | 'grant' | null;
 
 export default function WalletsPage() {
+  const searchParams = useSearchParams();
   const [balances, setBalances] = useState<Balance[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [userIdSearch, setUserIdSearch] = useState('');
+  const [userIdSearch, setUserIdSearch] = useState(searchParams.get('userId') || '');
   const [dialogType, setDialogType] = useState<DialogType>(null);
   const [selectedBalance, setSelectedBalance] = useState<Balance | null>(null);
   const [reason, setReason] = useState('');
@@ -66,6 +68,7 @@ export default function WalletsPage() {
         page,
         limit: 20,
         userId: userIdSearch ? parseInt(userIdSearch) : undefined,
+        minBalance: 0,
       };
       const response = await walletService.getWallets(params);
       setBalances(response.data);

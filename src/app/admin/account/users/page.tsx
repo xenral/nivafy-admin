@@ -604,6 +604,13 @@ export default function UsersPage() {
 
                             {/* Deep Links */}
                             <DropdownMenuItem asChild>
+                              <Link href={`/admin/wallet/wallets?userId=${user.id}`}>
+                                <Wallet className="mr-2 h-4 w-4" />
+                                Wallet
+                              </Link>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem asChild>
                               <Link href={`/admin/wallet/transactions?userId=${user.id}`}>
                                 <Wallet className="mr-2 h-4 w-4" />
                                 Transactions
@@ -1027,6 +1034,12 @@ export default function UsersPage() {
                     </div>
                     <div className="space-y-1 border-t pt-2">
                       <p className="text-xs font-semibold uppercase text-muted-foreground">View Activity</p>
+                      <Button asChild variant="ghost" className="w-full justify-start gap-2">
+                        <Link href={`/admin/wallet/wallets?userId=${detailsUser.id}`}>
+                          <Wallet className="h-4 w-4" />
+                          Wallet
+                        </Link>
+                      </Button>
                       <Button asChild variant="ghost" className="w-full justify-start gap-2">
                         <Link href={`/admin/wallet/transactions?userId=${detailsUser.id}`}>
                           <Wallet className="h-4 w-4" />
