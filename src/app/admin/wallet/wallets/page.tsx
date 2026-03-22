@@ -59,7 +59,7 @@ export default function WalletsPage() {
 
   useEffect(() => {
     loadBalances();
-  }, [page]);
+  }, [page, userIdSearch]);
 
   const loadBalances = async () => {
     setLoading(true);
@@ -67,7 +67,7 @@ export default function WalletsPage() {
       const params: any = {
         page,
         limit: 20,
-        userId: userIdSearch ? parseInt(userIdSearch) : undefined,
+        userId: userIdSearch ? userIdSearch : undefined,
         minBalance: 0,
       };
       const response = await walletService.getWallets(params);
