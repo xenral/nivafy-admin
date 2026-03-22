@@ -74,12 +74,12 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "@next/swc-darwin-arm64": "^16.1.6",
     "@tailwindcss/postcss": "^4.1.11",
     "@types/node": "^20.9.0",
     "@types/papaparse": "^5.3.14",
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
-    "typescript-eslint": "8.54.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.2.1",
     "husky": "^8.0.3",
@@ -87,7 +87,8 @@
     "postcss": "^8.5.6",
     "prettier": "^3.1.0",
     "prettier-plugin-tailwindcss": "^0.5.7",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "typescript-eslint": "8.54.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

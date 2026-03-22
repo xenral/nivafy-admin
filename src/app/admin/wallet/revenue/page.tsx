@@ -160,7 +160,7 @@ export default function RevenuePage() {
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '8px'
                     }}
-                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
+                    formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Revenue']}
                   />
                   <Area 
                     type="monotone" 
@@ -199,7 +199,7 @@ export default function RevenuePage() {
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '8px'
                     }}
-                    formatter={(value: number) => [value, 'Transactions']}
+                    formatter={(value) => [value, 'Transactions']}
                   />
                   <Bar dataKey="transactions" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
                 </BarChart>
@@ -222,7 +222,7 @@ export default function RevenuePage() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ type, percentage }) => `${type}: ${percentage.toFixed(1)}%`}
+                      label={(props: any) => `${props.type}: ${props.percentage.toFixed(1)}%`}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="revenue"
@@ -237,7 +237,7 @@ export default function RevenuePage() {
                         border: '1px solid hsl(var(--border))',
                         borderRadius: '8px'
                       }}
-                      formatter={(value: number) => [`$${value.toLocaleString()}`, 'Revenue']}
+                      formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Revenue']}
                     />
                   </PieChart>
                 </ResponsiveContainer>
